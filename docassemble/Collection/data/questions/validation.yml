@@ -1,0 +1,102 @@
+---
+question: |
+   What is the client's income?
+fields:
+  - "Is your client's only income social security?": social_security
+    datatype: yesnoradio
+  - "What is the client's weekly salary?": client_salary
+    hide if: social_security
+    datatype: currency
+---
+question: |
+  Is this a validation letter or a do not contact letter?
+field: validation
+buttons:
+  - "Validation": True
+  - "Do Not Contact": False
+---
+question: |
+  What is the client's name?
+fields: 
+  - First: client_first_name
+  - Last: client_last_name
+---
+question: |
+  Are you the lawyer or the client?
+field: pro_se
+buttons:
+  - "Client": True
+  - "Lawyer": False
+---
+question: |
+  What is the your name? 
+fields:
+  - "What is your first name?": first_name
+    show if: pro_se = FALSE
+  - "What is your last name?": last_name
+    show if: pro_se = FALSE
+---
+question: |
+  What is the original creditor's name? 
+fields:
+  - "Original creditor name": original_creditor_name 
+    show if: collector_is_debt_collector = FALSE
+
+---
+question: |
+  Who is the collector?
+fields:
+  - Address: address
+    address autocomplete: True
+
+  - Collector Name: collector_name
+  - Street: collector_street_address
+  - City: collector_city
+  - State: collector_state
+  - Zip Code: collector_zip
+---
+question: |
+  What is today's date?
+fields:
+  - Date: date
+---
+mandatory: True
+question: |
+  Please answer the following question
+fields:
+  - "Do you know the account number?": account_number_known
+    datatype: yesnoradio
+  - "What is the account number?": account_number
+    show if: account_number_known
+---
+mandatory: True
+question: |
+  Is the collector a debt collector or an original creditor?
+field: collector_is_debt_collector
+buttons:
+  - "Debt Collector": True
+  - "Original Creditor": False
+---
+question: |
+  Fill out the certified letter article number.
+fields:
+  - Article Number: article_number
+---
+question: |
+  Here is your letter.
+attachment:
+  name: Letter to Collector
+  filename: Collector Letter
+  docx template file: Validation_Rep_Hardship_Letter_2.docx
+  need:
+    - date
+    - article_number
+    - collector_name
+    - collector_street_address
+    - collector_city
+    - collector_state
+    - collector_zip
+    - pro_se
+    - client_salary
+    - social_security
+mandatory: True
