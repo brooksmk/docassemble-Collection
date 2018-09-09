@@ -1,0 +1,86 @@
+---
+modules:
+  - docassemble.base.util
+---
+objects:
+  - user: Individual
+  - user_wages: Value
+  - user_public_benefits: Value
+  - user_real_estate: Value
+  - user_savings: Value
+---
+question: |
+  Do you make money from working?
+yesno: user_wage.there_are_any
+---
+question: |
+  Do you have any other income?
+yesno: other_income.exists
+---
+question: |
+  How much money do you make from working?
+fields:
+  - Amount: user_wages_value
+    datatype: currency
+  - Is this an hourly rate? : user_wage[i].is_hourly
+    datatype: yesno
+  - How often do you earn this amount?: user_wages_period
+    choices:
+     - Annually: 0.01923076923
+     - Monthly: 0.23255813953
+     - Biweekly: 0.5
+     - Weekly: 1
+    hide if: user_wage[i].is_hourly
+  - Hours worked each average week: user_wage[i].average_weekly_hours
+    datatype: number
+    show if: 
+      variable: user_wages_period
+      is: 'hourly'
+   - Do you have any more jobs?: user_wage.there_is_another
+     datatype: yesno
+---
+code: |
+  hourly_wage = float((hours_per_week) * (user_wages_value))
+---
+mandatory: True
+code: |
+  if user_wages_period == 'hourly':
+    hourly_worker = True
+  else:
+    hourly_worker = False
+---
+code: |
+  weekly_wage = float((user_wages_value)) * float(user_wages_period)
+  
+---
+code: |
+  weekly_wage_hourly = (user_wages_value) * (hours_per_week)
+
+---
+question: |
+   You make ${ round((weekly_wage), 2) } every week
+   % if (float(weekly_wage) * float(.15)) > float(550):
+   You have non-exempt property. ${ round((float(weekly_wage) - float(weekly_wage) * float(.85)), 2) } could be garnished.
+   % elif float(weekly_wage) > float(550):
+   You have non-exempt property. ${ round((float(weekly_wage) - float(550)), 2) } could be garnished.
+   % else:
+   Your property is all exempt
+   % endif
+event: hourly_worker = False
+---
+question: |
+   You make ${ round((weekly_wage_hourly), 2) } every week
+   % if float(float(weekly_wage_hourly) * float(.15)) > float(550):
+   You have non-exempt property. ${ round((float(weekly_wage_hourly) - float(weekly_wage_hourly) * float(.85)), 2) } could be garnished.
+   % elif float(weekly_wage_hourly) > float(550):
+   You have non-exempt property. ${ round((float(weekly_wage_hourly) - float(550)), 2) } could be garnished.
+   % else:
+   Your property is all exempt
+   % endif
+event: hourly_worker = True
+---    
+event: final_screen
+question: |
+  Thank you for completing this interview!
+---
+
