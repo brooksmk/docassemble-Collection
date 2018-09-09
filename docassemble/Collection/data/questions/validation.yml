@@ -1,4 +1,11 @@
 ---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+---
+objects:
+  - collector: Person
+---
 question: |
    What is the client's income?
 fields:
@@ -46,14 +53,19 @@ fields:
 question: |
   Who is the collector?
 fields:
-  - Address: address
+  - Collector's Name: collector.name.text
+  - address: collector.address.address
     address autocomplete: True
-
-  - Collector Name: collector_name
-  - Street: collector_street_address
-  - City: collector_city
-  - State: collector_state
-  - Zip Code: collector_zip
+  - unit: collector.address.unit
+    required: False
+  - city: collector.address.city
+  - state: collector.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: collector.address.zip
+  - county: collector.address.county
+    required: False
 ---
 question: |
   What is today's date?
@@ -82,21 +94,18 @@ question: |
 fields:
   - Article Number: article_number
 ---
+code: |
+  # List the variables in order below
+  pro_se
+  collector.address.address
+  interview_order = True
+---
+need:
+  - interview_order
 question: |
   Here is your letter.
 attachment:
   name: Letter to Collector
   filename: Collector Letter
   docx template file: Validation_Rep_Hardship_Letter_2.docx
-  need:
-    - date
-    - article_number
-    - collector_name
-    - collector_street_address
-    - collector_city
-    - collector_state
-    - collector_zip
-    - pro_se
-    - client_salary
-    - social_security
 mandatory: True
