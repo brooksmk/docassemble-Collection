@@ -1,0 +1,98 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+---
+objects:
+  - collector: Person
+  - client: Person
+---
+question: |
+  Who are you?
+fields:
+  - Your Name: client.name.text
+  - address: client.address.address
+    address autocomplete: True
+  - unit: client.address.unit
+    required: False
+  - city: client.address.city
+  - state: client.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: client.address.zip
+  - county: client.address.county
+    required: False
+---
+question: |
+  Do you want to get information from the collector, or do you want the collector to stop contacting you?
+field: validation
+buttons:
+  - "Get information": True
+  - "Stop contacting me": False
+---
+question: |
+  Who is the collector?
+fields:
+  - Collector's Name: collector.name.text
+  - address: collector.address.address
+    address autocomplete: True
+  - unit: collector.address.unit
+    required: False
+  - city: collector.address.city
+  - state: collector.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: collector.address.zip
+  - county: collector.address.county
+    required: False
+---
+question: |
+  Please answer the following question
+fields:
+  - "Do you know the account number?": account_number_known
+    datatype: yesnoradio
+  - "What is the account number?": account_number
+    show if: account_number_known
+---
+question: |
+  Is the collector the person you borrowed money from, or someone else?
+field: collector_is_debt_collector
+buttons: 
+    - "The person I borrowed money from": False
+    - "Someone else": True
+---
+question: |
+    What is the name of the company you borrowed money from?
+fields: 
+  - Name of company: original_creditor_name
+showif: collector_is_debt_collector = False
+---
+code: |
+  if collector_is_debt_collector:
+    oc_name = original_creditor_name
+  else:
+    oc_name = collector.name
+---
+code: |
+  # List the variables in order below
+  client.address.address
+  validation
+  collector.address.address
+  collector_is_debt_collector
+  oc_name
+  client.address.address
+  account_number_known
+  interview_order = True
+---
+mandatory: True
+need:
+  - interview_order
+question: |
+  Here is your letter.
+attachment:
+  name: Letter to Collector
+  filename: Collector Letter
+  docx template file: Validation_Letter.docx
+---
