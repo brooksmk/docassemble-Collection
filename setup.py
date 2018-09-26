@@ -47,7 +47,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.Collection',
       version='0.2',
       description=('Validation and do not call letters to send to debt collectors.'),
-      long_description='# docassemble-madebtcollections\r\n\r\n## Changelog\r\n\r\n* 2018-09-26 Stripped down validation/exemption/\r\n  do-not call letter to more basic functionality.\r\n  Removed statements about social security income.',
+      long_description='# docassemble-madebtcollections\r\n\r\n## Changelog\r\n\r\n* 2018-09-26 Stripped down validation/exemption/do-not call letter to more basic \r\n  functionality. Removed statements about social security income.\r\n  \r\n* 2018-09-26 removed GBLS logo from validationOnly template.',
       long_description_content_type='text/markdown',
       author='Matt Brooks',
       author_email='Mbrooks@gbls.org',
