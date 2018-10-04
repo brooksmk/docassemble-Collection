@@ -3,6 +3,16 @@ modules:
   - docassemble.base.util
   - docassemble.base.legal
 ---
+metadata:
+  title: |
+    Validation or Do Not Call Letter
+  description: |
+    An interview to get information from debt collectors or stop them contacting you.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2018-10-04
+---
 objects:
   - collector: Person
   - client: Person

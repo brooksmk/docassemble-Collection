@@ -10,3 +10,5 @@
 * 2018-09-26 fixed bug where interview used wrong template.
 
 * 2018-09-26 fixed additional bug where interview used wrong template.
+
+* 2018-10-04 added metadata block to display interview title on GBLS website.
