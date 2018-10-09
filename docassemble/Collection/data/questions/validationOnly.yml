@@ -85,6 +85,15 @@ code: |
   else:
     oc_name = collector.name
 ---
+question: |
+  Sign your name here.
+subquestion: |
+  Your signature will appear at the bottom
+  of your letter.
+signature: client_signature
+under: |
+  ${ client.name.text }
+---
 code: |
   # List the variables in order below
   client.address.address
@@ -94,6 +103,7 @@ code: |
   oc_name
   client.address.address
   account_number_known
+  client_signature
   interview_order = True
 ---
 mandatory: True
