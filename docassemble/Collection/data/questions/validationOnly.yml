@@ -31,8 +31,7 @@ fields:
       states_list()
     default: "MA"
   - zip: client.address.zip
-  - county: client.address.county
-    required: False
+
 ---
 question: |
   Do you want to get information from the collector, or do you want the collector to stop contacting you?
@@ -55,8 +54,6 @@ fields:
       states_list()
     default: "MA"
   - zip: collector.address.zip
-  - county: collector.address.county
-    required: False
 ---
 question: |
   Please answer the following question

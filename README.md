@@ -17,3 +17,5 @@
 
 * 2018-10-15 corrected bug where validationOnly template included do not call language
   in validation letters.
+  
+* 2018-10-15 added client address to address block in template.
