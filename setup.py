@@ -45,9 +45,9 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.Collection',
-      version='0.6',
+      version='0.7',
       description=('Validation and do not call letters to send to debt collectors.'),
-      long_description='# docassemble-madebtcollections\r\n\r\n## Changelog\r\n\r\n* 2018-09-26 Stripped down validation/exemption/do-not call letter to more basic \r\n  functionality. Removed statements about social security income.\r\n  \r\n* 2018-09-26 removed GBLS logo from validationOnly template.\r\n\r\n* 2018-09-26 fixed bug where interview used wrong template.\r\n\r\n* 2018-09-26 fixed additional bug where interview used wrong template.\r\n\r\n* 2018-10-04 added metadata block to display interview title on GBLS website.\r\n\r\n* 2018-10-09 added singature capability to validationOnly interview.',
+      long_description='# docassemble-madebtcollections\r\n\r\n## Changelog\r\n\r\n* 2018-09-26 Stripped down validation/exemption/do-not call letter to more basic \r\n  functionality. Removed statements about social security income.\r\n  \r\n* 2018-09-26 removed GBLS logo from validationOnly template.\r\n\r\n* 2018-09-26 fixed bug where interview used wrong template.\r\n\r\n* 2018-09-26 fixed additional bug where interview used wrong template.\r\n\r\n* 2018-10-04 added metadata block to display interview title on GBLS website.\r\n\r\n* 2018-10-09 added signature capability to validationOnly interview.\r\n\r\n* 2018-10-15 corrected bug where validationOnly template included do not call language\r\n  in validation letters.',
       long_description_content_type='text/markdown',
       author='Matt Brooks',
       author_email='Mbrooks@gbls.org',

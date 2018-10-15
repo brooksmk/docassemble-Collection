@@ -13,4 +13,7 @@
 
 * 2018-10-04 added metadata block to display interview title on GBLS website.
 
-* 2018-10-09 added singature capability to validationOnly interview.
+* 2018-10-09 added signature capability to validationOnly interview.
+
+* 2018-10-15 corrected bug where validationOnly template included do not call language
+  in validation letters.
