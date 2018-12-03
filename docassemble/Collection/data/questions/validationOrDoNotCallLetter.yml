@@ -1,0 +1,152 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+---
+metadata:
+  title: |
+    Validation or Do Not Call Letter
+  description: |
+    An interview to get information from debt collectors or stop them contacting you.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2018-12-03
+---
+objects:
+  - collector: Person
+  - client: Person
+---
+question: |
+  Who are you?
+fields:
+  - Your Name: client.name.text
+  - address: client.address.address
+    address autocomplete: True
+  - unit: client.address.unit
+    required: False
+  - city: client.address.city
+  - state: client.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: client.address.zip
+
+---
+question: |
+  Do you want to get information from the person who is contacting you (the "collector"), or do you want the collector to stop contacting you?
+field: validation
+buttons:
+  - "Get information": True
+  - "Stop contacting me": False
+---
+question: |
+   Who is the the person contacting you (the "collector")?
+fields:
+  - Collector's Name: collector.name.text
+  - address: collector.address.address
+    address autocomplete: True
+  - unit: collector.address.unit
+    required: False
+  - city: collector.address.city
+  - state: collector.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: collector.address.zip
+---
+question: |
+  Please answer the following question
+fields:
+  - "Do you know the account number?": account_number_known
+    datatype: yesnoradio
+  - "What is the account number?": account_number
+    show if: account_number_known
+---
+question: |
+  Is the company contacting you (the "collector") the company you borrowed money from, or a different company?
+field: collector_is_debt_collector
+buttons: 
+    - "The company I borrowed money from": False
+    - "A different company": True
+---
+question: |
+    What is the name of the company you borrowed money from?
+fields: 
+  - Name of company: original_creditor_name
+showif: collector_is_debt_collector = False
+---
+code: |
+  if collector_is_debt_collector:
+    oc_name = original_creditor_name
+  else:
+    oc_name = collector.name
+---
+question: |
+  Sign your name here.
+subquestion: |
+  Your signature will appear at the bottom
+  of your letter.
+signature: client_signature
+under: |
+  ${ client.name.text }
+---
+question: |
+    Is there anything you would like to tell the person who is contacting you (the "collector")?
+subquestion: |
+    For example, you might want to tell the collector if you are not working, receive public benefits, or have a medical condition.
+    
+    If you dispute the debt, you might want to explain your dispute here. For example, you could say "I do not recognize this debt" or "I think I paid this debt already", if those things are true.
+    
+    % if validation is True:
+    You should not tell the collector to stop contacting you here, because you are using this letter to get more information.
+    % elif validation is False:
+    You should not aske the collector to provide you with information here, because you are using this letter to get the collector to stop contacting you.
+    % endif
+fields:
+    - Would you like to add something else to you letter?: client_wants_to_add_additional_information
+      datatype: yesnoradio
+    - Additional Information: additional_information
+      datatype: area
+      show if:
+        variable: client_wants_to_add_additional_information
+        is: True
+---
+code: |
+  # List the variables in order below
+  client.address.address
+  validation
+  collector.address.address
+  collector_is_debt_collector
+  oc_name
+  client.address.address
+  account_number_known
+  client_wants_to_add_additional_information
+  client_signature
+  interview_order = True
+---
+mandatory: True
+need:
+  - interview_order
+question: |
+  Here is your letter.
+  % if (collector_is_debt_collector) is False and (validation is False):
+  
+  BECAUSE THIS DEBT COLLECTOR IS AN "ORIGINAL CREDITOR", THEY MIGHT NOT LISTEN TO YOUR LETTER.
+  YOU MIGHT STILL RECEIVE COMMUNICATIONS FROM THIS COLLECTOR.
+  % endif
+field: done_validation_Or_Do_Not_Call_Letter
+attachment:
+  name: letter_to_collector
+  filename: letter_to_collectior_file
+  docx template file: letter_to_collector_template.docx
+---
+mandatory: True
+need:
+    - done_validation_Or_Do_Not_Call_Letter
+question: |
+  Your letter is finished. Click "Exit" to exit the interview,
+  click "Restart" to write another letter.
+buttons:
+  - Exit: exit
+  - Restart: restart

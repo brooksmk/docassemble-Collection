@@ -19,3 +19,9 @@
   in validation letters.
   
 * 2018-10-15 added client address to address block in template.
+
+* 2018-12-03 changed package description, renamed validation/do not call letter
+  interview, added motion to vacate default and certificate of service, fixed 
+  validation / do not call letter error where wrong name was displaying for original
+  creditor, changed validation / do not call letter formatting, added ability for
+  interviewee to add additional information to validation / do not call letter.
