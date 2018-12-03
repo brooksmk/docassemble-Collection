@@ -25,3 +25,5 @@
   validation / do not call letter error where wrong name was displaying for original
   creditor, changed validation / do not call letter formatting, added ability for
   interviewee to add additional information to validation / do not call letter.
+  
+* 2018-12-03 uploaded new validation/do not call letter template.
