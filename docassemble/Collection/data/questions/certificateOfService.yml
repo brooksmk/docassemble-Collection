@@ -17,9 +17,8 @@ objects:
 ---
 comment: |
 	## Mandatory block that determines interview order.
-mandatory: True
 code: |
-	client.name.first
+  client.name.first
 	opposing_party.address
 	client.phone_number
 	pleading_title

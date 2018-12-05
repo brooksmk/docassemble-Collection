@@ -24,11 +24,19 @@ code: |
     pleading_title = 'Motion to Vacate Default for Lack of Notice'
     done_certificate_Of_Service = False
 ---
+question:
+    This is an interview that will help you write a Motion to Vacate Default
+    for Lack of Notice. You should use this interveiw if a judgment entered
+    against you, and you did not know about the court hearing where the judgment
+    entered.
+field: intro_screen_seen
+---
 comment: |
 	## Mandatory block that determines interview order.
 mandatory: True
 code: |
-	client.name.first
+	intro_screen_seen
+  client.name.first
 	client.address
 	client.phone_number
 	opposing_party.name.text
@@ -72,7 +80,7 @@ fields:
 code: |
 	ma_court_list_by_code = { '01': 'Boston Municipal Central', 
 	'02':   'Roxbury Municipal', 
-  '03': 'South Boston Municipal', 
+  '03':   'South Boston Municipal', 
 	'04':	'Charlestown Municipal', 
 	'05':   'East Boston Municipal',
 	'06':	'West Roxbury Municipal',
@@ -155,8 +163,10 @@ code: |
 	'88':	'Nantucket District Court',
 	'89':	'Falmouth District Court',
 	'98':	'Eastern Hampshire District Court'}
-	court_code = case_number[2] + case_number[3]
+	
+  court_code = case_number[2] + case_number[3]
 	court_name = ma_court_list_by_code[court_code]
+    
 	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
 		court_department = 'Municipal Court'
 	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
@@ -164,6 +174,7 @@ code: |
 		court_department = 'Superior Court'
 	else:
 		court_department = 'District Court'
+        
 	if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
 		small_claims = True
 	else:
@@ -183,7 +194,7 @@ question: |
 
 	${ motion_to_vacate_default_variable }
    
-    ${ certificate_of_service_variable }
+  ${ certificate_of_service_variable }
 
 buttons: 
     - Exit: exit
