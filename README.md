@@ -30,3 +30,5 @@
 * 2018-12-03 added motion to vacate default and certificate of service interviews
 
 * 2018-12-05 readded motion to vacate default interview after restoring lost code.
+
+* 2018-12-05 removed title from certificateOfService metadata block.

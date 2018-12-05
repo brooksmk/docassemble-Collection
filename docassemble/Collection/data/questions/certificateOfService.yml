@@ -4,8 +4,6 @@ modules:
 	- docassemble.base.legal
 ---
 metadata:
-	title: |
-		Certificate of Service
 	description: |
 		An interview to create a certificate of service
 	authors: |
