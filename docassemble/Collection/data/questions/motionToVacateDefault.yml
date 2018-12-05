@@ -1,125 +1,198 @@
 ---
 modules:
-  - docassemble.base.util
-  - docassemble.base.legal
+	- docassemble.base.util
+	- docassemble.base.legal
 ---
 metadata:
-  title: |
-    Validation or Do Not Call Letter
-  description: |
-    An interview to get information from debt collectors or stop them contacting you.
-  authors:
-     - name: Matt Brooks
-       organization: Greater Boston Legal Services
-  revision_date: 2018-12-03
+	title: |
+		Motion to Vacate Default for Lack of Notice
+	description: |
+		An interview to create a document to ask the Court for a new hearing date
+		if you didn't know about your first hearing date.
+	authors: |
+		- name: Matt Brooks
+		  organization: Greater Boston Legal Services
+	revision_date: 2018-12-4
 ---
 objects:
-  - collector: Person
-  - client: Person
+	defendant: Individual
 ---
-question: |
-  Who are you?
-fields:
-  - Your Name: client.name.text
-  - address: client.address.address
-    address autocomplete: True
-  - unit: client.address.unit
-    required: False
-  - city: client.address.city
-  - state: client.address.state
-    code: |
-      states_list()
-    default: "MA"
-  - zip: client.address.zip
-
----
-question: |
-  Do you want to get information from the person who is contacting you (the "collector"), or do you want the collector to stop contacting you?
-field: validation
-buttons:
-  - "Get information": True
-  - "Stop contacting me": False
----
-question: |
-   Who is the the person contacting you (the "collector")?
-fields:
-  - Collector's Name: collector.name.text
-  - address: collector.address.address
-    address autocomplete: True
-  - unit: collector.address.unit
-    required: False
-  - city: collector.address.city
-  - state: collector.address.state
-    code: |
-      states_list()
-    default: "MA"
-  - zip: collector.address.zip
----
-question: |
-  Please answer the following question
-fields:
-  - "Do you know the account number?": account_number_known
-    datatype: yesnoradio
-  - "What is the account number?": account_number
-    show if: account_number_known
----
-question: |
-  Is the company contacting you (the "collector") the company you borrowed money from, or a different company?
-field: collector_is_debt_collector
-buttons: 
-    - "The company I borrowed money from": False
-    - "A different company": True
----
-question: |
-    What is the name of the company you borrowed money from?
-fields: 
-  - Name of company: original_creditor_name
-showif: collector_is_debt_collector = False
+include:
+    - certificateOfService.yml
 ---
 code: |
-  if collector_is_debt_collector:
-    oc_name = original_creditor_name
-  else:
-    oc_name = collector.name
+    pleading_title = 'Motion to Vacate Default for Lack of Notice'
+    done_certificate_Of_Service = False
+---
+comment: |
+	## Mandatory block that determines interview order.
+mandatory: True
+code: |
+	client.name.first
+	client.address
+	client.phone_number
+	opposing_party.name.text
+	case_number
+	court_name
+	court_department
+	small_claims
+	client.signature
 ---
 question: |
-  Sign your name here.
-subquestion: |
-  Your signature will appear at the bottom
-  of your letter.
+	What is your name?
+fields:
+	- First Name: client.name.first
+	- Last Name: client.name.last
+---
+question: |
+	What is your address?
+fields:
+	- Street Address: client.address.address
+	- City: client.address.city
+	  default: Boston
+	- State: client.address.state
+	  default: MA
+	- Zip Code: client.address.zip
+---
+question: |
+	What is your phone number?
+fields:
+	- Phone Number: client.phone_number
+---
+question: |
+	What is your case number?
+fields:
+	- Case Number: case_number
+---
+question: |
+    What is the name of the opposing party (the person who is suing you)?
+fields:
+    - Opposing Party Name: opposing_party.name.text
+---
+code: |
+	ma_court_list_by_code = { '01': 'Boston Municipal Central', 
+	'02':   'Roxbury Municipal', 
+  '03': 'South Boston Municipal', 
+	'04':	'Charlestown Municipal', 
+	'05':   'East Boston Municipal',
+	'06':	'West Roxbury Municipal',
+	'07':	'Dorchester Municipal',
+	'08':	'Brighton Municipal',
+	'09':	'Brookline District Court',
+	'10':	'Somerville District Court',
+	'11':	'Lowell District Court',
+	'12':	'Newton District Court',
+	'13':	'Lynn District Court',
+	'14':	'Chelsea District Court',
+	'15':	'Brockton District Court',
+	'16':	'Fitchburg District Court',
+	'17':	'Holyoke District Court',
+	'18':	'Lawrence District Court',
+	'20':	'Chicopee District Court',
+	'21':	'Marlboro District Court',
+	'22':	'Newburyport District Court',
+	'23':	'Springfield District Court',
+	'25':	'Barnstable District Court',
+	'26':	'Orleans District Court',
+	'27':	'Pittsfield District Court',
+	'28':	'Northern Berkshire District Court',
+	'29':	'Southern Berkshire District Court',
+	'31':	'Taunton District Court',
+	'32':	'Fall River District Court',
+	'33':	'New Bedford District Court',
+	'34':	'Attleboro District Court',
+	'35':	'Edgartown District Court',
+	'36':	'Salem District Court',
+	'38':	'Haverhill District Court',
+	'39':	'Gloucester District',
+	'40':	'Ipswich District Court',
+	'41':	'Greenfield District Court',
+	'42':	'Orange District Court',
+	'43':	'Palmer District Court',
+	'44':	'Westfield District Court',
+	'45':	'Northampton District Court',
+	'47':	'Concord District Court',
+	'48':	'Ayer District Court',
+	'49':	'Framingham District Court',
+	'50':	'Malden District Court',
+	'51':	'Waltham District Court',
+	'52':	'Cambridge District Court',
+	'53':	'Woburn District Court',
+	'54':	'Dedham District Court',
+	'55':	'Stoughton District Court',
+	'56':	'Quincy District Court',
+	'57':	'Wrentham District Court',
+	'58':	'Hingham District Court',
+	'59':	'Plymouth District Court',
+	'60':	'Wareham District Court',
+	'61':	'Leominster District Court',
+	'62':	'Worcester District Court',
+	'63':	'Gardner District Court',
+	'64':	'Dudley District Court',
+	'65':	'Uxbridge District Court',
+	'66':	'Milford District Court',
+	'67':	'Westborough District Court',
+	'68':	'Clinton District Court',
+	'69':	'East Brookfield District Court',
+	'70':	'Winchendon District Court',
+	'71':	'Suffolk Juvenile',
+	'72':	'Barnstable Superior Court',
+	'73':	'Bristol Superior Court',
+	'74':	'Dukes Superior Court',
+	'75':	'Nantucket Superior Court',
+	'76':	'Berkshire Superior Court',
+	'77':	'Essex Superior Court',
+	'78':	'Franklin Superior Court',
+	'79':	'Hampden Superior Court',
+	'80':	'Hampshire Superior Court',
+	'81':	'Middlesex Superior Court',
+	'82':	'Norfolk Superior Court',
+	'83':	'Plymouth Superior Court',
+	'84':	'Suffolk Superior Court',
+	'85':	'Worcester Superior Court',
+	'86':	'Peabody District Court',
+	'87':	'Natick District Court',
+	'88':	'Nantucket District Court',
+	'89':	'Falmouth District Court',
+	'98':	'Eastern Hampshire District Court'}
+	court_code = case_number[2] + case_number[3]
+	court_name = ma_court_list_by_code[court_code]
+	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
+		court_department = 'Municipal Court'
+	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
+    '81', '82', '83', '84', '85']:
+		court_department = 'Superior Court'
+	else:
+		court_department = 'District Court'
+	if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
+		small_claims = True
+	else:
+		small_claims = False
+---
+question:
+	${ client.name.firstlast() }
 signature: client_signature
 under: |
-  ${ client.name.text }
----
-code: |
-  # List the variables in order below
-  client.address.address
-  validation
-  collector.address.address
-  collector_is_debt_collector
-  oc_name
-  client.address.address
-  account_number_known
-  client_signature
-  interview_order = True
+  Sign your name here by using your mouse or touching your phone's screen.
+  Press clear if you want to start over.
 ---
 mandatory: True
-need:
-  - interview_order
 question: |
-  Here is your letter.
-field: done_validation_Or_Do_Not_Call_Letter
+	Here are your motion and certificate of service:
+	
+
+	${ motion_to_vacate_default_variable }
+   
+    ${ certificate_of_service_variable }
+
+buttons: 
+    - Exit: exit
+    - Restart: restart
+---
 attachment:
-  name: letter_to_collector
-  filename: letter_to_collectior_file
-  docx template file: letter_to_collector_template.docx
----
-mandatory: True
-need:
-    - done_validation_Or_Do_Not_Call_Letter
-question: |
-  Your letter is finished. Click "Exit" to exit the interview,
-  click "Restart" to write another letter.
-buttons:
-  - Exit: exit
-  - Restart: restart
+	- name: Motion to Vacate Default
+	  variable name: motion_to_vacate_default_variable
+	  filename: motion_to_vacate_default_file
+	  docx template file: motion_to_vacate_default_template.docx
+	
+	
