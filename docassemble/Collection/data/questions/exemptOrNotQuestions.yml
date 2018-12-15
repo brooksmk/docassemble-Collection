@@ -2,6 +2,8 @@
 modules:
     - docassemble.base.util
     - docassemble.base.legal
+    - .exemptOrNot
+
 ---
 metadata:
     title: | 
@@ -16,7 +18,6 @@ metadata:
 ---
 objects:
     - income_list: IncomeList
-    -
 --- 
 question: |
     Do you have any income?
@@ -58,6 +59,7 @@ question: |
     Your income sources with weekly income_list
 subquestion: |
     % for income_source in income_list:
-        You earn ${ income_list[i].amount } per week at ${ income_list[i] }
+        You earn ${ income_list[i].amount } per week at ${ income_list[i] 
+    % endfor
 
         
