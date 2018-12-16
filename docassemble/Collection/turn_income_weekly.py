@@ -8,10 +8,16 @@ def turn_income_weekly(self):
             self[i].period == "Weekly"
         if self[i].period == "Weekly":
             pass
+        if self[i].period == "Daily":
+            self[i].amount == self[i].amount * 7
+            self[i].period == "Weekly"
         if self[i].period == "Twice per month":
             self[i].amount == self[i].amount * .46
             self[i].period == "Weekly"
         if self[i].period == "Once every two weeks":
             self[i].amount == self[i].amount * .5
+            self[i].period == "Weekly"
+        if self[i].period == "Hourly":
+            self[i].amount == self[i].amount * self[i].hours_per_week
             self[i].period == "Weekly"
 
