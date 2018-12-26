@@ -34,3 +34,7 @@
 * 2018-12-05 removed title from certificateOfService metadata block.
 
 * 2018-12-05 added intro screen to motionToVacateDefault.
+
+* 2018-12-21 adding exemptions interview and function.
+
+* 2018-12-25 changing exemptions function and adding table display

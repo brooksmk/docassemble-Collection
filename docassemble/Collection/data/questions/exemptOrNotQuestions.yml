@@ -2,7 +2,8 @@
 modules:
     - docassemble.base.util
     - docassemble.base.legal
-    - .turn_income_weekly
+    - docassemble.income.income
+    - .exemptOrNot
 
 ---
 metadata:
@@ -14,59 +15,73 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2018-12-15
+    revision_date: 2018-12-25 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
-    - income_list: DAList.using(object_type=DAObject)
+    - income_list: IncomeList
 --- 
 question: |
     Do you have any income?
 yesno: income_list.there_are_any
 ---
+## question: |
+  ## Do you receive any public assistance (e.g., social security, cash assistance)
+## yesno: receives_public_assistance
+---
 question: |
-    What is your first source of income?
+    What is your ${ ordinal(i) } source of income?
 fields:
-    - Job: income_list[i]
+    - Job: income_list[i].name
 ---
 question: |
-  How often do you get your income from ${ income_list[i] }?
+  Tell me about your income from ${ income_list[i].name }
 fields:
-  - Pay Period: income_list[i].period
-    choices: 
-      - Yearly: annual
-      - Monthly: monthly
-      - Bi-Weekly: bi-weekly
-      - Weekly: weekly
-      - Daily: daily
-      - Hourly: hourly
----
-code: |
-    for i in income_list:
-        if income_list[i].period == 'hourly':
-            income_list[i].is_it_hourly = True
-        else:
-            income_list[i].is_it_hourly = False
+##  - Is this income public assistance?: income_list[i].is_public_assistance
+##    datatype: yesnoradio
+##    show if:
+##      code: |
+##        receives_public_assistance is True
+  - Do you get paid hourly?: income_list[i].is_hourly
+    datatype: yesnoradio
+  - Hourly rate: income_list[i].hourly_rate
+    datatype: currency
+    show if: income_list[i].is_hourly
+  - Average hours worked per period: income_list[i].hours_per_period
+    datatype: integer
+    show if: income_list[i].is_hourly
+  - Amount earned: income_list[i].value
+    datatype: currency
+    show if:
+      variable: income_list[i].is_hourly
+      is: False
+  - '': income_list[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
 ---
 question: |
-  How much do you get paid at $ { income_list[i] }
-fields:
-  - amount: income_list[i].amount
----
-question: |
-    So far, the sources of income you have put in include ${ income_list }
+    So far, the sources of income you have put in include:
+    
+    % for source in income_list:
+    * ${ source.name }
+    % endfor
+    
     Do you have any other sources of income?
 yesno: income_list.there_is_another
-
----
-code: |
-    turn_income_weekly(income_list)
 ---
 mandatory: True
 question: |
-    Your income sources with weekly income_list
+    Your income sources with weekly income amounts:
 subquestion: |
-    % for income_source in income_list:
-        You earn ${ income_list[i].amount } per week at ${ income_list[i] 
-    % endfor
+   ${ income_list.table }
+   Amount Not Exempt Per Week: ${currency(amount_not_exempt(income_list))}
+
+---
+table: income_list.table
+rows: income_list
+columns:
+  - Income Source: row_item.name
+  - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+
 
         
