@@ -38,3 +38,5 @@
 * 2018-12-21 adding exemptions interview and function.
 
 * 2018-12-25 changing exemptions function and adding table display
+
+* 2018-12-27 added questions related to non-wage income to exemptOrNot.

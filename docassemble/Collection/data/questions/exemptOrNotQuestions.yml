@@ -15,73 +15,120 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2018-12-25 (definitive version is saved in the playground of interviews-dev.gbls.org)
+    revision_date: 2018-12-27 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
-    - income_list: IncomeList
+    - jobs: IncomeList
+    - non_job_income: IncomeList
 --- 
 question: |
-    Do you have any income?
-yesno: income_list.there_are_any
----
-## question: |
-  ## Do you receive any public assistance (e.g., social security, cash assistance)
-## yesno: receives_public_assistance
+    Do you have any income from a job?
+yesno: jobs.there_are_any
 ---
 question: |
-    What is your ${ ordinal(i) } source of income?
-fields:
-    - Job: income_list[i].name
+    Do you have any income that is NOT from a job?
+yesno: non_job_income.there_are_any
 ---
 question: |
-  Tell me about your income from ${ income_list[i].name }
+    What is your ${ ordinal(i) } job?
 fields:
-##  - Is this income public assistance?: income_list[i].is_public_assistance
-##    datatype: yesnoradio
-##    show if:
-##      code: |
-##        receives_public_assistance is True
-  - Do you get paid hourly?: income_list[i].is_hourly
+    - Job: jobs[i].name
+---
+question: |
+    What is your ${ ordinal(i) } source of income that is not from a job?
+fields: 
+  - Non Job Income Source Name: non_job_income[i].name
+    choices:
+      - Social Security
+      - Public Assistance (Food Stamps, Cash Assistance)
+      - EAEDC
+      - Food Stamps
+      - Pension/Annuity/Retirement
+      - Unemployment
+      - Veterans Benefits
+      - Workers Compensation
+      - Fraternal Society Benefits
+      - Child Support or Alimony
+      - Rental Income/Investments
+      - Other
+  - Other: non_job_income[i].name
+    show if:
+      variable: non_job_income[i].name
+      is: Other
+---
+question: |
+  Tell me about your income from ${ jobs[i].name }
+fields:
+  - Do you get paid hourly?: jobs[i].is_hourly
     datatype: yesnoradio
-  - Hourly rate: income_list[i].hourly_rate
+  - Hourly rate: jobs[i].hourly_rate
     datatype: currency
-    show if: income_list[i].is_hourly
-  - Average hours worked per period: income_list[i].hours_per_period
+    show if: jobs[i].is_hourly
+  - Average hours worked per period: jobs[i].hours_per_period
     datatype: integer
-    show if: income_list[i].is_hourly
-  - Amount earned: income_list[i].value
+    show if: jobs[i].is_hourly
+  - Amount earned: jobs[i].value
     datatype: currency
     show if:
-      variable: income_list[i].is_hourly
+      variable: jobs[i].is_hourly
       is: False
-  - '': income_list[i].period
+  - '': jobs[i].period
     datatype: number
     code: |
       period_list() + [[4,"Per quarter"]]
 ---
 question: |
-    So far, the sources of income you have put in include:
+  Tell me about your income from ${ non_job_income[i].name }
+fields:
+  - Amount earned: non_job_income[i].value
+    datatype: currency
+  - '': non_job_income[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+    So far, the jobs you have put in include:
     
-    % for source in income_list:
+    % for source in jobs:
     * ${ source.name }
     % endfor
     
-    Do you have any other sources of income?
-yesno: income_list.there_is_another
+    Do you have any other jobs?
+yesno: jobs.there_is_another
+---
+question: |
+    So far, the non-job sources of income you have put in include:
+    
+    % for source in non_job_income:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other non-job sources of income?
+yesno: non_job_income.there_is_another
 ---
 mandatory: True
 question: |
     Your income sources with weekly income amounts:
 subquestion: |
-   ${ income_list.table }
-   Amount Not Exempt Per Week: ${currency(amount_not_exempt(income_list))}
+   ${all_income_table}
+   
+   Amount Not Exempt Per Week: ${currency(amount_not_exempt(all_income))}
 
 ---
-table: income_list.table
-rows: income_list
+code: |
+  for item in non_job_income:
+    jobs.append(item)
+  all_income = jobs
+---
+table: all_income_table
+rows: all_income
 columns:
   - Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+
+    
+  
 
 
         
