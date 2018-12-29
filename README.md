@@ -42,3 +42,5 @@
 * 2018-12-27 added questions related to non-wage income to exemptOrNot.
 
 * 2018-12-28 added warning message related to pension/annuity/retirement income to exemptOrNot.
+
+* 2018-12-28 added Unemployment to fully exempt income amounts and corrected exemptOrNot.py
