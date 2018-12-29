@@ -15,19 +15,19 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2018-12-27 (definitive version is saved in the playground of interviews-dev.gbls.org)
+    revision_date: 2018-12-28 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
     - jobs: IncomeList
     - non_job_income: IncomeList
---- 
-question: |
-    Do you have any income from a job?
-yesno: jobs.there_are_any
 ---
 question: |
     Do you have any income that is NOT from a job?
 yesno: non_job_income.there_are_any
+--- 
+question: |
+    Do you have any income from a job?
+yesno: jobs.there_are_any
 ---
 question: |
     What is your ${ ordinal(i) } job?
@@ -111,18 +111,27 @@ mandatory: True
 question: |
     Your income sources with weekly income amounts:
 subquestion: |
-   ${all_income_table}
-   
+   ${jobs.table}
+   ${non_job_income.table}
    Amount Not Exempt Per Week: ${currency(amount_not_exempt(all_income))}
-
+   
+   % if all_income[i].name == 'Pension/Annuity/Retirement':
+   You have listed Pension/Annuity/Retirement as a source of income. This income
+   is probably completely exempt, but it may not be. Consult an attorney to be sure.
+   % endif
 ---
+sets: all_income
 code: |
-  for item in non_job_income:
-    jobs.append(item)
-  all_income = jobs
+  all_income = all_income_combined(jobs, non_job_income)
 ---
-table: all_income_table
-rows: all_income
+table: non_job_income.table
+rows: non_job_income
+columns:
+  - Income Source: row_item.name
+  - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+---
+table: jobs.table
+rows: jobs
 columns:
   - Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
