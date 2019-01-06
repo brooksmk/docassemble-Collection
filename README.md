@@ -45,4 +45,4 @@
 
 * 2018-12-28 added Unemployment to fully exempt income amounts and corrected exemptOrNot.py
 
-* 2019-1-06 added exit screen for users seeking information about child support or government debts.
+* 2019-1-06 added exit screen for users seeking information about child support or government debts, updated exemptOrNot.py for new Massachusetts minimum wage

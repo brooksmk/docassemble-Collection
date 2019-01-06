@@ -13,11 +13,11 @@ def amount_not_exempt(IncomeList):
             total = total
         else:
             total = total + float(item.amount(period_to_use=52))
-    if (float(total) <= 550) is False:
-        if ((float(total) * .85) > 550) is True:
+    if (float(total) <= 600) is False:
+        if ((float(total) * .85) > 600) is True:
             amount_not_exempt = (float(total) * .15)
         else:
-            amount_not_exempt = (float(total) - 550)
+            amount_not_exempt = (float(total) - 600)
     else:
         amount_not_exempt = float(0)
     return amount_not_exempt
