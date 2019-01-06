@@ -15,16 +15,45 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2018-12-28 (definitive version is saved in the playground of interviews-dev.gbls.org)
+    revision_date: 2019-01-06 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
     - jobs: IncomeList
     - non_job_income: IncomeList
 ---
 question: |
+  Let's see if you are in the right place. Are you looking for information about a debt you owe to the government (for example: taxes, student loans, or a benefits overpayment)?
+yesno: government_debt
+---
+question: |
+  Are you looking for information about a child support debt?
+yesno: child_support_debt
+
+---
+mandatory: True
+code: |
+  if (government_debt is True) or (child_support_debt is True):
+    correct_interview = False
+    go_to_final_screen = True
+  else:
+    correct_interview = True
+## mandatory: True
+## code: |
+##  correct_interview
+##  initial_screens_seen
+---
+question: |
+  You are in the right place. Let's start the interview.
+field: initial_screens_seen
+---
+need:
+  - initial_screens_seen
+question: |
     Do you have any income that is NOT from a job?
 yesno: non_job_income.there_are_any
 --- 
+need:
+  - initial_screens_seen
 question: |
     Do you have any income from a job?
 yesno: jobs.there_are_any
@@ -107,7 +136,6 @@ question: |
     Do you have any other non-job sources of income?
 yesno: non_job_income.there_is_another
 ---
-mandatory: True
 question: |
     Your income sources with weekly income amounts:
 subquestion: |
@@ -119,6 +147,24 @@ subquestion: |
    You have listed Pension/Annuity/Retirement as a source of income. This income
    is probably completely exempt, but it may not be. Consult an attorney to be sure.
    % endif
+buttons:
+  Exit:
+    code: |
+      go_to_final_screen = True
+  Restart: restart
+---
+mandatory: True
+need:
+  - go_to_final_screen
+question: |
+  % if correct_interview == False:
+    I'm sorry, this is not the right interview for you. You should exit or restart the interview.
+  % else:
+    You are done with the interview. You should exit or restart the interview now.
+  % endif
+buttons:
+  - Exit: exit
+  - Restart: restart
 ---
 sets: all_income
 code: |
