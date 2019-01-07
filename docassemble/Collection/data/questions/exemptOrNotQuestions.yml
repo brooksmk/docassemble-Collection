@@ -15,7 +15,7 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2019-01-06 (definitive version is saved in the playground of interviews-dev.gbls.org)
+    revision_date: 2019-01-07 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
     - jobs: IncomeList
@@ -37,10 +37,6 @@ code: |
     go_to_final_screen = True
   else:
     correct_interview = True
-## mandatory: True
-## code: |
-##  correct_interview
-##  initial_screens_seen
 ---
 question: |
   You are in the right place. Let's start the interview.
@@ -139,13 +135,22 @@ yesno: non_job_income.there_is_another
 question: |
     Your income sources with weekly income amounts:
 subquestion: |
+ 
    ${jobs.table}
-   ${non_job_income.table}
-   Amount Not Exempt Per Week: ${currency(amount_not_exempt(all_income))}
+   ${non_job_income.table}   
+  
+   Amount Not Exempt Per Week: ${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}
    
-   % if all_income[i].name == 'Pension/Annuity/Retirement':
+   % if jobs_and_fully_exempt:
+   
+   % if jobs_and_fully_exempt[i].name == 'Pension/Annuity/Retirement':
    You have listed Pension/Annuity/Retirement as a source of income. This income
    is probably completely exempt, but it may not be. Consult an attorney to be sure.
+   
+   
+   % endif 
+   
+   
    % endif
 buttons:
   Exit:
@@ -166,21 +171,23 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
-sets: all_income
+sets: jobs_and_fully_exempt
 code: |
-  all_income = all_income_combined(jobs, non_job_income)
+  jobs_and_fully_exempt = jobs_and_fully_exempt_combined(jobs, non_job_income)
 ---
 table: non_job_income.table
 rows: non_job_income
 columns:
   - Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+show if empty: False
 ---
 table: jobs.table
 rows: jobs
 columns:
   - Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+show if empty: False
 
     
   
