@@ -15,21 +15,41 @@ metadata:
     authors:
         - name: Matt Brooks
           organization: Greater Boston Legal Services
-    revision_date: 2019-01-07 (definitive version is saved in the playground of interviews-dev.gbls.org)
+    revision_date: 2019-02-18 (definitive version is saved in the playground of interviews-dev.gbls.org)
 ---
 objects:
     - jobs: IncomeList
     - non_job_income: IncomeList
+    - car: DAObject
+    - bank_account: DAObject
+    - home: DAObject
+    - jewelry: DAObject
+    - other_valuable_things: DAObject
+    - assets_that_are_like_income: IncomeList
 ---
 question: |
-  Let's see if you are in the right place. Are you looking for information about a debt you owe to the government (for example: taxes, student loans, or a benefits overpayment)?
+  This interview can tell you whether a debt collector can force
+  you to pay after suing you.
+  
+  Let's see if you are in the right place. 
+  
+  Are you looking for information about a debt you owe to the government? 
+subquestion: |
+  for example: taxes, student loans, or a benefits overpayment
 yesno: government_debt
 ---
 question: |
   Are you looking for information about a child support debt?
 yesno: child_support_debt
+---
+question: |
+  Are you looking for information about what happens if your home
+  is foreclosed on or your car is repossessed?
+yesno: secured_debt  
 
 ---
+need:
+  - secured_debt
 mandatory: True
 code: |
   if (government_debt is True) or (child_support_debt is True):
@@ -38,14 +58,118 @@ code: |
   else:
     correct_interview = True
 ---
+need:
+  - secured_debt
 question: |
-  You are in the right place. Let's start the interview.
+  You are in the right place! 
+  Let's start the interview.
 field: initial_screens_seen
+---
+need: 
+  - initial_screens_seen
+question: |
+  Do you have any of the following things?
+fields:
+  - Tell me about the things you own: has_assets
+    datatype: checkboxes
+    choices:
+      - Car: owns_car
+      - House: owns_house
+      - Bank Account: has_bank_account
+      - Jewelry: owns_jewelry
+      - Something Else Valuable: owns_something_else_valuable
+  - Are you disabled or over 60?: car.disabled_or_over_sixty
+    show if: has_assets["owns_car"]
+    datatype: radio
+    choices:
+      - Yes: True
+      - No: False
+  - Have you filed a declaration of homestead?: home.homestead_filed
+    show if: has_assets["owns_house"]
+    datatype: radio
+    choices:
+      - Yes: True
+      - No: False
+      - I am not sure: False 
+---
+need:
+  - has_assets[i].value
+mandatory: True
+code: |
+  assets = list()
+  if has_assets["owns_car"]:
+    assets.append(car)
+    car.asset_type = "car"
+    car.name = "Car"
+    car.value = car_value
+    car.amount_not_exempt = 123456789
+  if has_assets["owns_house"]:
+    assets.append(home)
+    home.asset_type = "home"
+    home.name = "Home"
+    home.value = home_value
+    home.mortgage = home_mortgage
+    home.amount_not_exempt = 123456789
+  if has_assets["has_bank_account"]:
+    assets.append(bank_account)
+    bank_account.asset_type = "bank_account"
+    bank_account.name = "Bank Account"
+    bank_account.value = bank_account_value
+    bank_account.amount_not_exempt = 123456789
+  if has_assets["owns_jewelry"]:
+    assets.append(jewelry)
+    jewelry.asset_type = "jewelry"
+    jewelry.name = "Jewelry"
+    jewelry.value = jewelry_value
+    jewelry.amount_not_exempt = 123456789
+  if has_assets["owns_something_else_valuable"]:
+    assets.append(other_valuable_things)
+    other_valuable_things.asset_type = "other_valuable_things"
+    other_valuable_things.name = "Other"
+    other_valuable_things.value = other_valuable_things_value
+    other_valuable_things.amount_not_exempt = 123456789
+  asset_list_populated = True
+---
+question: |
+  Tell me about your assets.
+fields: 
+  - Car Value: car_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_car"]
+  - Amount in Bank Account: bank_account_value
+    datatype: currency
+    show if:
+      code: |
+        has_assets["has_bank_account"]
+  - Home Value: home_value
+    datatype: currency
+    show if:
+      code: |
+        has_assets["owns_house"]
+  - Amount you owe on your mortgage (put 0 if unsure): home_mortgage
+    datatype: currency
+    show if:
+       code: |
+        has_assets["owns_house"]
+  - Jewelry Value: jewelry_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_jewelry"]
+  - Value of Other Valuable Things: other_valuable_things_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_something_else_valuable"]
 ---
 need:
   - initial_screens_seen
 question: |
     Do you have any income that is NOT from a job?
+subquestion: |
+    For example: social security, public benefits, retirement, or rental income
 yesno: non_job_income.there_are_any
 --- 
 need:
@@ -132,14 +256,26 @@ question: |
     Do you have any other non-job sources of income?
 yesno: non_job_income.there_is_another
 ---
+need:
+  - asset_list_populated
+sets: assets_are_exempt
+code: |
+  assets_exempted = exempt_assets(assets)
+  assets_are_exempt = True
+---
+need:
+  - assets_are_exempt
 question: |
-    Your income sources with weekly income amounts:
+    Your income sources and assets with exemption amounts:
 subquestion: |
  
    ${jobs.table}
-   ${non_job_income.table}   
+   ${non_job_income.table}
   
-   Amount Not Exempt Per Week: ${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}
+   Based on your income, a debt collector could make you pay **${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}** per week.
+   
+   Most debt collectors can only **force** you to pay this amount if they sue you and win.
+   
    
    % if jobs_and_fully_exempt:
    
@@ -151,6 +287,38 @@ subquestion: |
    % endif 
    
    
+   % endif
+   
+   ${assets_table}
+   
+   % for item in assets_exempted:
+     % if (item.amount_not_exempt > 0):
+       ${currency(item.amount_not_exempt)} of your ${item.name} is not protected. 
+       If a debt collector sues you and wins, 
+       they could ask you to sell/empty your ${item.name} 
+       and give them ${currency(item.amount_not_exempt)}.
+       
+     % endif
+   % endfor
+   You may be able to exempt up to $6,000 of additional property. A lawyer could let you know more.
+   
+   % if secured_debt:
+     Remember, if your home is foreclosed on or your car is reposessed, the company you
+     borrowed money from to buy your home or your car can **almost always** take and
+     sell your home or car without going to court first. **They can also still sue you
+     for the rest of the money you owe, even after they take your house or sell your
+     car.**
+     
+   % endif  
+   % if not has_assets["owns_house"]:
+
+   % elif (has_assets["owns_house"] and (not home.homestead_filed)):
+      You may be able to protect more of your home equity if you file a declaration of homestead.
+      Go here for more information: [Massachusetts Law About Homestead](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
+   % elif (has_assets["owns_house"] and home.homestead_filed):
+       Even more of your home equity may be protected if you are over sixty two
+       or disabled.
+       Go here for more information: [Massachusetts Homestead Law](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
    % endif
 buttons:
   Exit:
@@ -178,15 +346,22 @@ code: |
 table: non_job_income.table
 rows: non_job_income
 columns:
-  - Income Source: row_item.name
+  - Non Job Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
 show if empty: False
 ---
 table: jobs.table
 rows: jobs
 columns:
-  - Income Source: row_item.name
+  - Job Income Source: row_item.name
   - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+show if empty: False
+---
+table: assets_table
+rows: assets_exempted
+columns:
+  - Thing You Own: row_item.name
+  - Amount Not Protected: currency(row_item.amount_not_exempt)
 show if empty: False
 
     

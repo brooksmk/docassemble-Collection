@@ -45,6 +45,8 @@
 
 * 2018-12-28 added Unemployment to fully exempt income amounts and corrected exemptOrNot.py
 
-* 2019-1-06 added exit screen for users seeking information about child support or government debts, updated exemptOrNot.py for new Massachusetts minimum wage
+* 2019-01-06 added exit screen for users seeking information about child support or government debts, updated exemptOrNot.py for new Massachusetts minimum wage
 
-* 2019-1-07 added support for fully non-exempt types of income, fixed out of index error where jobs or non_job_income lists were empty.
+* 2019-01-07 added support for fully non-exempt types of income, fixed out of index error where jobs or non_job_income lists were empty.
+
+* 2019-02-18 added support for assets. 
