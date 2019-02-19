@@ -49,4 +49,8 @@
 
 * 2019-01-07 added support for fully non-exempt types of income, fixed out of index error where jobs or non_job_income lists were empty.
 
-* 2019-02-18 added support for assets. 
+* 2019-02-18 added support for assets.
+
+* 2019-02-19 fixed issue where text was being displayed in a gray box like it was code because 
+  apparently in Markdown four spaces means "format something to look like code".
+  Who knew!

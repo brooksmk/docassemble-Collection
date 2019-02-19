@@ -293,10 +293,10 @@ subquestion: |
    
    % for item in assets_exempted:
      % if (item.amount_not_exempt > 0):
-       ${currency(item.amount_not_exempt)} of your ${item.name} is not protected. 
-       If a debt collector sues you and wins, 
-       they could ask you to sell/empty your ${item.name} 
-       and give them ${currency(item.amount_not_exempt)}.
+     **${currency(item.amount_not_exempt)}** of your **${item.name}** is **not protected**. 
+     If a debt collector sues you and wins, 
+     they could ask you to sell/empty your ${item.name} 
+     and give them ${currency(item.amount_not_exempt)}.
        
      % endif
    % endfor
@@ -313,12 +313,11 @@ subquestion: |
    % if not has_assets["owns_house"]:
 
    % elif (has_assets["owns_house"] and (not home.homestead_filed)):
-      You may be able to protect more of your home equity if you file a declaration of homestead.
-      Go here for more information: [Massachusetts Law About Homestead](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
+   You may be able to protect more of your home equity if you file a declaration of homestead.
+   Go here for more information: [Massachusetts Law About Homestead](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
    % elif (has_assets["owns_house"] and home.homestead_filed):
-       Even more of your home equity may be protected if you are over sixty two
-       or disabled.
-       Go here for more information: [Massachusetts Homestead Law](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
+   Even more of your home equity may be protected if you are over sixty two or disabled.
+   Go here for more information: [Massachusetts Homestead Law](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
    % endif
 buttons:
   Exit:
