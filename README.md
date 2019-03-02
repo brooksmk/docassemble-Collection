@@ -54,3 +54,5 @@
 * 2019-02-19 fixed issue where text was being displayed in a gray box like it was code because 
   apparently in Markdown four spaces means "format something to look like code".
   Who knew!
+
+* 2019-03-02 deleted various unused .yml files, python modules, and one template.
