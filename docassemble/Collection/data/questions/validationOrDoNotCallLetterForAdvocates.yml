@@ -1,0 +1,145 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+---
+metadata:
+  title: |
+    Validation or Do Not Call Letter For Advocates
+  description: |
+    An interview to write validation or do not call letters on behalf
+    of your clients that come from you.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2019-03-02
+---
+objects:
+  - collector: Person
+  - client: Person
+  - advocate: Person
+---
+question: |
+  What is your client's full name?
+fields:
+  - Client's full name: client.name.text
+---
+question: |
+  What is your full name?
+fields:
+  - Your full name: advocate.name.text
+---
+question: |
+  Do you want to write a validation letter or a do not call letter?
+field: validation
+buttons:
+  - "Validation": True
+  - "Do not call": False
+---
+question: |
+   Fill in the following information about the entity
+   you are writing the letter to.
+subquestion: |
+   You will fill in information about the original creditor later.
+fields:
+  - Entity's Name: collector.name.text
+  - address: collector.address.address
+    address autocomplete: True
+  - unit: collector.address.unit
+    required: False
+  - city: collector.address.city
+  - state: collector.address.state
+    code: |
+      states_list()
+    default: "MA"
+  - zip: collector.address.zip
+---
+question: |
+  Please answer the following question
+fields:
+  - "Do you know your client's account number?": account_number_known
+    datatype: yesnoradio
+  - "What is the account number?": account_number
+    show if: account_number_known
+---
+question: |
+  Is the company you are writing to a debt collector or an original creditor?
+field: collector_is_debt_collector
+buttons: 
+    - "Original Creditor": False
+    - "Debt Collector": True
+---
+question: |
+    What is the name of the original creditor?
+fields: 
+  - Name of company: original_creditor_name
+showif: collector_is_debt_collector = False
+---
+question: |
+  Do you want the letter to contain a request to send all future communications
+  for your client to you?
+yesno: communications_go_to_advocate
+---
+code: |
+  if collector_is_debt_collector:
+    oc_name = original_creditor_name
+  else:
+    oc_name = collector.name
+---
+question: |
+  Sign your name here.
+subquestion: |
+  Your signature will appear at the bottom
+  of the letter.
+signature: advocate_signature
+under: |
+  ${ advocate.name.text }
+---
+question: |
+    Is there anything else you would like to add to the letter?
+subquestion: |
+    For example, you might want to note that your client is not working, receives public benefits, or has a medical condition.
+
+fields:
+    - Would you like to add something else to you letter?: advocate_wants_to_add_additional_information
+      datatype: yesnoradio
+    - Additional Information: additional_information
+      datatype: area
+      show if:
+        variable: advocate_wants_to_add_additional_information
+        is: True
+---
+code: |
+  # List the variables in order below
+  client.name.text
+  advocate.name.text
+  validation
+  collector.address.address
+  collector_is_debt_collector
+  oc_name
+  account_number_known
+  advocate_wants_to_add_additional_information
+  advocate_signature
+  interview_order = True
+---
+mandatory: True
+need:
+  - interview_order
+question: |
+  Here is your letter.
+  click "Restart" to write another letter.
+field: done_validation_Or_Do_Not_Call_Letter
+attachment:
+  name: letter_to_collector_from_advocate
+  filename: letter_to_collectior_from_advocate_file
+  docx template file: letter_to_collector_from_advocate_template.docx
+---
+mandatory: True
+need:
+    - done_validation_Or_Do_Not_Call_Letter
+question: |
+  Your letter is finished. Click "Exit" to exit the interview,
+  click "Restart" to write another letter.
+buttons:
+  - Exit: exit
+  - Restart: restart

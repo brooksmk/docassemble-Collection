@@ -56,3 +56,7 @@
   Who knew!
 
 * 2019-03-02 deleted various unused .yml files, python modules, and one template.
+
+* 2019-03-04 added advocate's version of validation/do not call letter interview.
+  Fixed error in template that caused no letter body text to appear for validation letters.
+
