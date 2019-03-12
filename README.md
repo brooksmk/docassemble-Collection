@@ -60,3 +60,5 @@
 * 2019-03-04 added advocate's version of validation/do not call letter interview.
   Fixed error in template that caused no letter body text to appear for validation letters.
 
+* 2019-03-11 add docsign interview.
+
