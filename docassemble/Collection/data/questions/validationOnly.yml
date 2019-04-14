@@ -6,6 +6,8 @@ modules:
 metadata:
   title: |
     Validation or Do Not Call Letter
+  tags: |
+    - Consumer
   description: |
     An interview to get information from debt collectors or stop them contacting you.
   authors:
