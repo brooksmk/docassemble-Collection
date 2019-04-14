@@ -9,6 +9,8 @@ modules:
 metadata:
     title: | 
         Exemptions Interview
+    tags: |
+        - Consumer
     description: |
         An interview to tell you whether a debt collector can force
         you to pay after suing you.
