@@ -6,6 +6,8 @@ modules:
 metadata:
 	description: |
 		An interview to create a certificate of service
+	tags: |
+		- Consumer
 	authors: |
 		- name: Matt Brooks
 		  organization: Greater Boston Legal Services
