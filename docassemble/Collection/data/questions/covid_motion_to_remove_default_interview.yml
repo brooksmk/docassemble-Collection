@@ -1,0 +1,236 @@
+---
+modules:
+	- docassemble.base.util
+	- docassemble.base.legal
+---
+metadata:
+	title: |
+		Motion to Vacate Default: COVID-19
+	tags: |
+		- Consumer
+	description: |
+		An interview to ask the Court to give you a new court date for your debt collection hearing 
+		if you did not go to your court date because of COVID-19.
+	authors: |
+		- name: Matt Brooks
+		  organization: Greater Boston Legal Services
+	revision_date: May 6, 2020
+---
+objects:
+	user: Individual
+	opposing_party: Person
+
+---
+include:
+    - certificateOfService.yml
+---
+code: |
+  pleading_title = 'Defendant\'s Motion to Remove Default and Vacate Judgment'
+  done_certificate_Of_Service = False
+---
+question:
+	Welcome
+subquestion:
+    This is an interview that will help you to ask the Court to give you a new court date for your debt collection hearing 
+		if you did not go to your court date because of COVID-19.
+under: |
+	For more information on the Massachusetts courts and COVID-19, go to [MassLegalHelp](https://www.masslegalhelp.org/health-mental-health/covid-19)
+field: intro_screen_seen
+---
+comment: |
+	## Mandatory block that determines interview order.
+mandatory: True
+code: |
+	intro_screen_seen
+  judgment_entry_date
+  user.name.first
+	user.address.address
+	user.phone_number
+	opposing_party.name.text
+	case_number
+	court_name
+	court_department
+	small_claims
+	user.signature
+  client = user
+---
+question: |
+	What is your name?
+fields:
+	- First Name: user.name.first
+	- Last Name: user.name.last
+---
+question: |
+	What is your address?
+fields:
+	- Street Address: user.address.address
+	- City: user.address.city
+	  default: Boston
+	- State: user.address.state
+	  default: MA
+  - County: user.address.county
+	- Zip Code: user.address.zip
+---
+question: |
+	How can the Court contact you?
+fields:
+	- Phone Number: user.phone_number
+	- Email: user.email
+---
+question: |
+	What is your case number?
+fields:
+	- Case Number: case_number
+---
+question: |
+    What is the name of the opposing party (the person who is suing you)?
+fields:
+    - Opposing Party Name: opposing_party.name.text
+---
+question: |
+	When did the default judgment enter?
+under: |
+  NOTE TO CDWG: Why do we need this information? To test whether the default entered during the crisis? If yes, should we kick the user out of the interview (or direct them to call Legal Services) if the date falls outside of a certain range?
+fields:
+	- Judgment Entry Date: judgment_entry_date
+    datatype: date
+
+---
+code: |
+	ma_court_list_by_code = { '01': 'Boston Municipal Central', 
+	'02':   'Roxbury Municipal', 
+  '03':   'South Boston Municipal', 
+	'04':	'Charlestown Municipal', 
+	'05':   'East Boston Municipal',
+	'06':	'West Roxbury Municipal',
+	'07':	'Dorchester Municipal',
+	'08':	'Brighton Municipal',
+	'09':	'Brookline District Court',
+	'10':	'Somerville District Court',
+	'11':	'Lowell District Court',
+	'12':	'Newton District Court',
+	'13':	'Lynn District Court',
+	'14':	'Chelsea District Court',
+	'15':	'Brockton District Court',
+	'16':	'Fitchburg District Court',
+	'17':	'Holyoke District Court',
+	'18':	'Lawrence District Court',
+	'20':	'Chicopee District Court',
+	'21':	'Marlboro District Court',
+	'22':	'Newburyport District Court',
+	'23':	'Springfield District Court',
+	'25':	'Barnstable District Court',
+	'26':	'Orleans District Court',
+	'27':	'Pittsfield District Court',
+	'28':	'Northern Berkshire District Court',
+	'29':	'Southern Berkshire District Court',
+	'31':	'Taunton District Court',
+	'32':	'Fall River District Court',
+	'33':	'New Bedford District Court',
+	'34':	'Attleboro District Court',
+	'35':	'Edgartown District Court',
+	'36':	'Salem District Court',
+	'38':	'Haverhill District Court',
+	'39':	'Gloucester District',
+	'40':	'Ipswich District Court',
+	'41':	'Greenfield District Court',
+	'42':	'Orange District Court',
+	'43':	'Palmer District Court',
+	'44':	'Westfield District Court',
+	'45':	'Northampton District Court',
+	'47':	'Concord District Court',
+	'48':	'Ayer District Court',
+	'49':	'Framingham District Court',
+	'50':	'Malden District Court',
+	'51':	'Waltham District Court',
+	'52':	'Cambridge District Court',
+	'53':	'Woburn District Court',
+	'54':	'Dedham District Court',
+	'55':	'Stoughton District Court',
+	'56':	'Quincy District Court',
+	'57':	'Wrentham District Court',
+	'58':	'Hingham District Court',
+	'59':	'Plymouth District Court',
+	'60':	'Wareham District Court',
+	'61':	'Leominster District Court',
+	'62':	'Worcester District Court',
+	'63':	'Gardner District Court',
+	'64':	'Dudley District Court',
+	'65':	'Uxbridge District Court',
+	'66':	'Milford District Court',
+	'67':	'Westborough District Court',
+	'68':	'Clinton District Court',
+	'69':	'East Brookfield District Court',
+	'70':	'Winchendon District Court',
+	'71':	'Suffolk Juvenile',
+	'72':	'Barnstable Superior Court',
+	'73':	'Bristol Superior Court',
+	'74':	'Dukes Superior Court',
+	'75':	'Nantucket Superior Court',
+	'76':	'Berkshire Superior Court',
+	'77':	'Essex Superior Court',
+	'78':	'Franklin Superior Court',
+	'79':	'Hampden Superior Court',
+	'80':	'Hampshire Superior Court',
+	'81':	'Middlesex Superior Court',
+	'82':	'Norfolk Superior Court',
+	'83':	'Plymouth Superior Court',
+	'84':	'Suffolk Superior Court',
+	'85':	'Worcester Superior Court',
+	'86':	'Peabody District Court',
+	'87':	'Natick District Court',
+	'88':	'Nantucket District Court',
+	'89':	'Falmouth District Court',
+	'98':	'Eastern Hampshire District Court',
+  '99': 'Unknown Court'}
+	
+  try:
+    court_code = case_number[2] + case_number[3]
+  except:
+    court_code = '99'
+	try:
+    court_name = ma_court_list_by_code[court_code]
+  except:
+    court_name = 'Unknown Court'
+    
+	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
+		court_department = 'Municipal Court'
+	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
+    '81', '82', '83', '84', '85']:
+		court_department = 'Superior Court'
+	else:
+		court_department = 'District Court'
+        
+	try:
+    if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
+		  small_claims = True
+  except:
+    small_claims = False
+	else:
+		small_claims = False
+---
+question:
+	${ user.name.firstlast() }
+signature: user.signature
+under: |
+  Sign your name here by using your mouse or touching your phone's screen.
+  Press clear if you want to start over.
+---
+mandatory: True
+question: |
+	Here are your motion and certificate of service:
+subquestion: |
+  ${ pdf_concatenate(covid_motion_to_vacate_default_variable, certificate_of_service_variable) }
+	
+
+buttons: 
+    - Exit: exit
+    - Restart: restart
+---
+attachment:
+	- name: COVID Motion to Vacate Default
+	  variable name: covid_motion_to_vacate_default_variable
+	  filename: coivd_motion_to_vacate_default_file
+	  docx template file: covid_motion_to_remove_default_template.docx
+	
+	
