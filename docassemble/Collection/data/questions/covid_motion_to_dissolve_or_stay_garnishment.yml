@@ -1,0 +1,361 @@
+---
+modules:
+	- docassemble.base.util
+	- docassemble.base.legal
+  - docassemble.income.income
+  - .exemptOrNot
+---
+metadata:
+	title: |
+		Motion to Dissolve: COVID-19
+	tags: |
+		- Consumer
+	description: |
+		An interview to ask the Court to stop your wage garnishment because of COVID-19.
+	authors: |
+		- name: Matt Brooks
+		  organization: Greater Boston Legal Services
+	revision_date: May 7, 2020
+---
+objects:
+  user: Individual
+  opposing_party: Person
+  trustee: Person
+  jobs: IncomeList
+  defenses: DAList
+  original_judgment: Thing
+  trustee_process_motion: Thing
+
+
+---
+include:
+    - certificateOfService.yml
+---
+code: |
+  pleading_title = 'Defendant\'s Motion to Dissolve or Stay Garnishment'
+  done_certificate_Of_Service = False
+---
+question:
+	Welcome
+subquestion:
+    This is an interview that will help you to ask the Court to stop your wage
+    garnishment because of COVID-19.
+under: |
+	For more information on the Massachusetts courts and COVID-19, go to [MassLegalHelp](https://www.masslegalhelp.org/health-mental-health/covid-19)
+field: intro_screen_seen
+---
+comment: |
+	## Mandatory block that determines interview order.
+mandatory: True
+code: |
+	intro_screen_seen
+  user.name.first
+	user.address.address
+	user.phone_number
+  defenses_populated
+	opposing_party.name.text
+  judgment_entry_date
+  trustee_process_motion.amount
+	case_number
+	court_name
+	court_department
+	small_claims
+	user.signature
+  client = user
+---
+code: |
+  weekly_utilities_and_rent = sum(user.rent.amount(period_to_use=52), user.utilities.amount(period_to_use=52) )
+---
+code: |
+  if eight_point_one_documents.any_false():
+    non_compliance_with_rule = True
+  else:
+    non_compliance_with_rule = False
+---
+code: |
+  if lack_of_notice:
+    defenses.append("lack of notice")
+  if (amount_not_exempt(jobs) <= 0):
+    defenses.append("reduction in income")
+  elif (sum(amount_not_exempt(jobs), weekly_utilities_and_rent) <= 0):
+    defenses.append("no non-exempt income")
+  if failure_to_prove_right_to_collect_on_judgment:
+    defenses.append("failure to prove right to collect on the judgment")
+  if non_compliance_with_rule:
+    defenses.append("noncompliance with rule")
+  defenses_populated = True
+---
+question: |
+  Do you recognize the person who is suing you?
+yesno: failure_to_prove_right_to_collect_on_judgment
+---
+question: |
+  Which of these documents did you get?
+fields:
+  - "Check the documents you got": eight_point_one_documents
+    datatype: checkboxes
+    choices:
+      - an affidavit disclosing certain information regarding the debt
+      - an affidavit providing documentation concerning establishing the existence, amount, and terms and conditions applicable to the debt
+      - an affidavit regarding address verification
+      - a statute of limitations certification
+---
+question: |
+  How much do you pay in rent and utilities per month?
+fields:
+  - Monthly Rent: user.rent.amount(period_to_use=12) 
+  - Monthly Utilities: user.utilities.amount(period_to_user=12)
+--- 
+need:
+  - initial_screens_seen
+question: |
+    Do you have any income from a job?
+yesno: jobs.there_are_any
+---
+question: |
+  What is your ${ ordinal(i) } job?
+fields:
+    - Job: jobs[i].name
+---
+question: |
+  Tell me about your income from ${ jobs[i].name }
+fields:
+  - Do you get paid hourly?: jobs[i].is_hourly
+    datatype: yesnoradio
+  - Hourly rate: jobs[i].hourly_rate
+    datatype: currency
+    show if: jobs[i].is_hourly
+  - Average hours worked per period: jobs[i].hours_per_period
+    datatype: integer
+    show if: jobs[i].is_hourly
+  - Amount earned: jobs[i].value
+    datatype: currency
+    show if:
+      variable: jobs[i].is_hourly
+      is: False
+  - '': jobs[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+    So far, the jobs you have put in include:
+    
+    % for source in jobs:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other jobs?
+yesno: jobs.there_is_another
+---
+question: |
+  Lack of notice
+subquestion: |
+  Did you know about this case?
+yesno: lack_of_notice 
+---
+question: |
+	Tell us about yourself.
+fields:
+	- First Name: user.name.first
+	- Last Name: user.name.last
+  - Your Gender: student.gender
+      input type: radio
+      choices:
+        - Male: male
+        - Female: female
+        - Other: other
+---
+question: |
+	What is your address?
+fields:
+	- Street Address: user.address.address
+	- City: user.address.city
+	  default: Boston
+	- State: user.address.state
+	  default: MA
+  - County: user.address.county
+	- Zip Code: user.address.zip
+---
+question: |
+	How can the Court contact you?
+fields:
+	- Phone Number: user.phone_number
+	- Email: user.email
+---
+question: |
+	What is your case number?
+fields:
+	- Case Number: case_number
+---
+question: |
+    What is the name of the opposing party (the person who is suing you)?
+fields:
+    - Opposing Party Name: opposing_party.name.text
+---
+question: |
+	Tell me about the judgment against you
+subquestion: |
+  NOTE TO CDWG: Why do we need this information? To test whether the default entered during the crisis? If yes, should we kick the user out of the interview (or direct them to call Legal Services) if the date falls outside of a certain range?
+fields:
+	- Judgment Entry Date: judgment_entry_date
+    datatype: date
+  - Judgment Amount: original_judgment.amount
+    datatype: currency
+  - Court Where Judgment Entered: original_judgment.court
+  - Date of Original Judgment: original_judgment.date
+    datatype: date
+---
+question: |
+  Tell me about the trustee process motion
+subquestion: |
+  NOTE TO CDWG: Why do we need this information? To test whether the default entered during the crisis? If yes, should we kick the user out of the interview (or direct them to call Legal Services) if the date falls outside of a certain range?
+fields:
+	- Date Motion Granted: trustee_process_motion.grant_date 
+    datatype: date
+  - Did you oppose the motion?: trustee_process_motion.opposed
+      input type: yesnoradio
+  - Do you know how much the judge ordered garnished?: trustee_process_motion.court_ordered_specific_garnishment_amount
+  - How much did the judge order garnished?: trustee_process_motion.garnishment_amount
+    show if:
+      variable: trustee_process_motion.court_ordered_specific_garnishment_amount
+      is: True
+---
+code: |
+	ma_court_list_by_code = { '01': 'Boston Municipal Central', 
+	'02':   'Roxbury Municipal', 
+  '03':   'South Boston Municipal', 
+	'04':	'Charlestown Municipal', 
+	'05':   'East Boston Municipal',
+	'06':	'West Roxbury Municipal',
+	'07':	'Dorchester Municipal',
+	'08':	'Brighton Municipal',
+	'09':	'Brookline District Court',
+	'10':	'Somerville District Court',
+	'11':	'Lowell District Court',
+	'12':	'Newton District Court',
+	'13':	'Lynn District Court',
+	'14':	'Chelsea District Court',
+	'15':	'Brockton District Court',
+	'16':	'Fitchburg District Court',
+	'17':	'Holyoke District Court',
+	'18':	'Lawrence District Court',
+	'20':	'Chicopee District Court',
+	'21':	'Marlboro District Court',
+	'22':	'Newburyport District Court',
+	'23':	'Springfield District Court',
+	'25':	'Barnstable District Court',
+	'26':	'Orleans District Court',
+	'27':	'Pittsfield District Court',
+	'28':	'Northern Berkshire District Court',
+	'29':	'Southern Berkshire District Court',
+	'31':	'Taunton District Court',
+	'32':	'Fall River District Court',
+	'33':	'New Bedford District Court',
+	'34':	'Attleboro District Court',
+	'35':	'Edgartown District Court',
+	'36':	'Salem District Court',
+	'38':	'Haverhill District Court',
+	'39':	'Gloucester District',
+	'40':	'Ipswich District Court',
+	'41':	'Greenfield District Court',
+	'42':	'Orange District Court',
+	'43':	'Palmer District Court',
+	'44':	'Westfield District Court',
+	'45':	'Northampton District Court',
+	'47':	'Concord District Court',
+	'48':	'Ayer District Court',
+	'49':	'Framingham District Court',
+	'50':	'Malden District Court',
+	'51':	'Waltham District Court',
+	'52':	'Cambridge District Court',
+	'53':	'Woburn District Court',
+	'54':	'Dedham District Court',
+	'55':	'Stoughton District Court',
+	'56':	'Quincy District Court',
+	'57':	'Wrentham District Court',
+	'58':	'Hingham District Court',
+	'59':	'Plymouth District Court',
+	'60':	'Wareham District Court',
+	'61':	'Leominster District Court',
+	'62':	'Worcester District Court',
+	'63':	'Gardner District Court',
+	'64':	'Dudley District Court',
+	'65':	'Uxbridge District Court',
+	'66':	'Milford District Court',
+	'67':	'Westborough District Court',
+	'68':	'Clinton District Court',
+	'69':	'East Brookfield District Court',
+	'70':	'Winchendon District Court',
+	'71':	'Suffolk Juvenile',
+	'72':	'Barnstable Superior Court',
+	'73':	'Bristol Superior Court',
+	'74':	'Dukes Superior Court',
+	'75':	'Nantucket Superior Court',
+	'76':	'Berkshire Superior Court',
+	'77':	'Essex Superior Court',
+	'78':	'Franklin Superior Court',
+	'79':	'Hampden Superior Court',
+	'80':	'Hampshire Superior Court',
+	'81':	'Middlesex Superior Court',
+	'82':	'Norfolk Superior Court',
+	'83':	'Plymouth Superior Court',
+	'84':	'Suffolk Superior Court',
+	'85':	'Worcester Superior Court',
+	'86':	'Peabody District Court',
+	'87':	'Natick District Court',
+	'88':	'Nantucket District Court',
+	'89':	'Falmouth District Court',
+	'98':	'Eastern Hampshire District Court',
+  '99': 'Unknown Court'}
+	
+  try:
+    court_code = case_number[2] + case_number[3]
+  except:
+    court_code = '99'
+	try:
+    court_name = ma_court_list_by_code[court_code]
+  except:
+    court_name = 'Unknown Court'
+    
+	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
+		court_department = 'Municipal Court'
+	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
+    '81', '82', '83', '84', '85']:
+		court_department = 'Superior Court'
+	else:
+		court_department = 'District Court'
+        
+	try:
+    if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
+		  small_claims = True
+  except:
+    small_claims = False
+	else:
+		small_claims = False
+---
+question:
+	${ user.name.firstlast() }
+signature: user.signature
+under: |
+  Sign your name here by using your mouse or touching your phone's screen.
+  Press clear if you want to start over.
+---
+mandatory: True
+question: |
+	Here are your motion and certificate of service:
+subquestion: |
+  ${ pdf_concatenate(covid_motion_to_stay_garnishment_variable, certificate_of_service_variable) }
+	
+
+buttons: 
+    - Exit: exit
+    - Restart: restart
+---
+attachment:
+	- name: COVID Motion to Stay Garnishment
+	  variable name: covid_motion_to_stay_garnishment_variable
+	  filename: covid_motion_to_stay_garnishment_file
+	  docx template file: covid_motion_to_stay_garnishment_template.docx
+	
+	
