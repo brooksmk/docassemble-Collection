@@ -18,18 +18,26 @@ metadata:
 	revision_date: May 7, 2020
 ---
 objects:
-  user: Individual
-  opposing_party: Person
-  trustee: Person
-  jobs: IncomeList
-  defenses: DAList
-  original_judgment: Thing
-  trustee_process_motion: Thing
+  - user: Individual
+  - opposing_party: Person
+  - trustee: Person
+  - jobs: IncomeList
+  - defenses: DAList
+  - original_judgment: Thing
+  - trustee_process_motion: Thing
 
 
 ---
 include:
     - certificateOfService.yml
+---
+default screen parts:
+  under: |
+    % if not user_logged_in():
+    [:sign-in-alt: Sign-in](${url_of('login', next=interview_url())}) or [register](${url_of('register', next=interview_url())}) to save your progress (optional).
+    % endif
+  
+    Have a problem with this website? <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSdMgXLzfj-pWDpQ9W51zxyynRIArdLXQ3yWFkHXAIgvj68Q2A/viewform?usp=sf_link">Please complete this feedback form</a>. Follow its instructions about [this link](${interview_url()}).
 ---
 code: |
   pleading_title = 'Defendant\'s Motion to Dissolve or Stay Garnishment'
@@ -52,19 +60,33 @@ code: |
   user.name.first
 	user.address.address
 	user.phone_number
+  trustee.name.text
   defenses_populated
 	opposing_party.name.text
   judgment_entry_date
-  trustee_process_motion.amount
+  trustee_process_motion.opposed
 	case_number
 	court_name
 	court_department
 	small_claims
 	user.signature
+  length_defenses
   client = user
 ---
 code: |
-  weekly_utilities_and_rent = sum(user.rent.amount(period_to_use=52), user.utilities.amount(period_to_use=52) )
+  length_defenses = len(defenses)
+---
+code: |
+  jobs_total = jobs.total()
+  jobs_amount_not_exempt = amount_not_exempt(jobs)
+---
+code: |
+  defenses_comma_and_list = comma_and_list(defenses)
+---
+code: |
+  weekly_utilities = user_utilities/4.3
+  weekly_rent = user_rent/4.3
+  weekly_utilities_and_rent = (user_utilities+user_rent)/4.3
 ---
 code: |
   if eight_point_one_documents.any_false():
@@ -73,21 +95,29 @@ code: |
     non_compliance_with_rule = False
 ---
 code: |
+  defenses = DAList()
   if lack_of_notice:
     defenses.append("lack of notice")
   if (amount_not_exempt(jobs) <= 0):
     defenses.append("reduction in income")
-  elif (sum(amount_not_exempt(jobs), weekly_utilities_and_rent) <= 0):
+  elif (amount_not_exempt(jobs)-weekly_utilities_and_rent) <= 0:
     defenses.append("no non-exempt income")
   if failure_to_prove_right_to_collect_on_judgment:
     defenses.append("failure to prove right to collect on the judgment")
   if non_compliance_with_rule:
     defenses.append("noncompliance with rule")
+  defenses.gathered = True
+  defenses.there_is_another = False
   defenses_populated = True
 ---
 question: |
+  What is the name of your employer
+fields:
+  - "Employer Name": trustee.name.text
+---
+question: |
   Do you recognize the person who is suing you?
-yesno: failure_to_prove_right_to_collect_on_judgment
+noyes: failure_to_prove_right_to_collect_on_judgment
 ---
 question: |
   Which of these documents did you get?
@@ -100,14 +130,18 @@ fields:
       - an affidavit regarding address verification
       - a statute of limitations certification
 ---
+code: |
+  user_rent = user.rent.amount(period_to_use=12)
+  user_utilities = user.utilities.amount(period_to_user=12)
+---
 question: |
   How much do you pay in rent and utilities per month?
 fields:
-  - Monthly Rent: user.rent.amount(period_to_use=12) 
-  - Monthly Utilities: user.utilities.amount(period_to_user=12)
+  - Monthly Rent: user_rent
+    datatype: currency
+  - Monthly Utilities: user_utilities
+    datatype: currency
 --- 
-need:
-  - initial_screens_seen
 question: |
     Do you have any income from a job?
 yesno: jobs.there_are_any
@@ -152,19 +186,19 @@ question: |
   Lack of notice
 subquestion: |
   Did you know about this case?
-yesno: lack_of_notice 
+noyes: lack_of_notice 
 ---
 question: |
 	Tell us about yourself.
 fields:
-	- First Name: user.name.first
-	- Last Name: user.name.last
-  - Your Gender: student.gender
-      input type: radio
-      choices:
-        - Male: male
-        - Female: female
-        - Other: other
+  - First Name: user.name.first
+  - Last Name: user.name.last
+  - Your Gender: user.gender
+    input type: radio
+    choices:
+      - Male: male
+      - Female: female
+      - Other: other
 ---
 question: |
 	What is your address?
@@ -214,8 +248,9 @@ fields:
 	- Date Motion Granted: trustee_process_motion.grant_date 
     datatype: date
   - Did you oppose the motion?: trustee_process_motion.opposed
-      input type: yesnoradio
+    datatype: yesnoradio
   - Do you know how much the judge ordered garnished?: trustee_process_motion.court_ordered_specific_garnishment_amount
+    datatype: yesnoradio
   - How much did the judge order garnished?: trustee_process_motion.garnishment_amount
     show if:
       variable: trustee_process_motion.court_ordered_specific_garnishment_amount
