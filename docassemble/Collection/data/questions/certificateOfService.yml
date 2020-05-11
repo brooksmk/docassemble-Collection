@@ -11,18 +11,18 @@ metadata:
 	authors: |
 		- name: Matt Brooks
 		  organization: Greater Boston Legal Services
-	revision_date: 2018-12-02
+	revision_date: 2020-05-11
 ---
 objects:
-	client: Individual
+	user: Individual
   opposing_party: Person
 ---
 comment: |
 	## Mandatory block that determines interview order.
 code: |
-  client.name.first
+  user.name.first
 	opposing_party.address
-	client.phone_number
+	user.phone_number
 	pleading_title
 	method_of_service
 	done_certificate_Of_Service
@@ -30,8 +30,8 @@ code: |
 question: |
 	What is your name?
 fields:
-	- First Name: client.name.first
-	- Last Name: client.name.last
+	- First Name: user.name.first
+	- Last Name: user.name.last
 ---
 question: |
 	What is your the address of the other party in your case?
@@ -49,10 +49,10 @@ fields:
   - Plaintiff Name: opposing_party.name
 ---
 question: |
-	${ client.name.firstlast() }
-signature: client.signature
+	${ user.name.firstlast() }
+signature: user.signature
 under: |
-  Sign your name here by using your mouse or touching your phone's screen.
+  Sign your certificate of service here. Sign your name here by using your mouse or touching your phone's screen.
   Press clear if you want to start over.
 ---
 question: |
