@@ -169,6 +169,15 @@ code: |
   court_code = case_number[2] + case_number[3]
 	court_name = ma_court_list_by_code[court_code]
     
+  try:
+    court_code = case_number[2] + case_number[3]
+  except:
+    court_code = '99'
+	try:
+    court_name = ma_court_list_by_code[court_code]
+  except:
+    court_name = 'Unknown Court'
+    
 	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
 		court_department = 'Municipal Court'
 	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
@@ -177,10 +186,14 @@ code: |
 	else:
 		court_department = 'District Court'
         
-	if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
-		small_claims = True
-	else:
-		small_claims = False
+	try:
+    if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
+		  small_claims = True
+    else:
+      small_claims = True
+  except:
+    small_claims = False
+---
 ---
 question:
 	${ client.name.firstlast() }

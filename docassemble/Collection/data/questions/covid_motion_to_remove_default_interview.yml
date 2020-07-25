@@ -14,7 +14,7 @@ metadata:
 	authors: |
 		- name: Matt Brooks
 		  organization: Greater Boston Legal Services
-	revision_date: May 6, 2020
+	revision_date: July 25, 2020
 ---
 objects:
 	user: Individual
@@ -45,11 +45,11 @@ under: |
 	For more information on the Massachusetts courts and COVID-19, go to [MassLegalHelp](https://www.masslegalhelp.org/health-mental-health/covid-19)
 field: intro_screen_seen
 ---
+mandatory: True
 comment: |
 	## Mandatory block that determines interview order.
-mandatory: True
 code: |
-	intro_screen_seen
+  intro_screen_seen
   judgment_entry_date
   user.name.first
 	user.address.address
@@ -61,6 +61,7 @@ code: |
 	small_claims
 	user.signature
   client = user
+  attachment_block
 ---
 question: |
 	What is your name?
@@ -210,10 +211,10 @@ code: |
 	try:
     if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
 		  small_claims = True
+    else:
+      small_claims = True
   except:
     small_claims = False
-	else:
-		small_claims = False
 ---
 question:
 	${ user.name.firstlast() }
@@ -222,11 +223,13 @@ under: |
   Sign your name here by using your mouse or touching your phone's screen.
   Press clear if you want to start over.
 ---
-mandatory: True
+event: attachment_block
 question: |
 	Here are your motion and certificate of service:
 subquestion: |
   ${ pdf_concatenate(covid_motion_to_vacate_default_variable, certificate_of_service_variable) }
+  
+  ${ pdf_concatenate(certificate_of_service_variable) }
 	
 
 buttons: 
