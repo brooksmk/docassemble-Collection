@@ -1,0 +1,177 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+---
+metadata:
+  title: |
+    Opening Case Memo - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for a client to fill out an opening case memo for GBLS's consumer rights unit.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2020-09-16
+---
+objects:
+  - client: Individual
+  - jobs: IncomeList
+  - non_job_income: IncomeList
+---
+comment: |
+  ## One of two mandatory blocks in the interview. Controls the order in which 
+  ## the interview asks questions. Only other mandatory block is client end screen.
+mandatory: True
+code: |
+  multi_user = True
+  client_splash_screen
+  client.name.first
+  client.address.address
+  client.phone_number
+  jobs.gather()
+  non_job_income.gather()
+  client_problem_statement 
+  send_email_to_intake
+  final_screen
+---
+question: |
+  Welcome! You are here because a GBLS advocate asked you to fill out an intake form.
+field: client_splash_screen
+subquestion: |
+  Click "Continue" to keep going with the interview.  
+
+---
+question: |
+  What is your name?
+fields:
+  - First Name: client.name.first
+  - Last Name: client.name.last
+---
+question: |
+  What is your address?
+fields:
+  - Street Address: client.address.address
+  - City: client.address.city
+  - State: client.address.state
+  - Zip: client.address.zip
+---
+question: |
+  Tell me your phone number and email address.
+fields:
+  - Phone Number: client.phone_number
+  - Email Address: client.email
+    datatype: email
+---
+question:
+  Tell us about your problem, in your own words.
+fields:
+  - Problem Statement: client_problem_statement
+    datatype: area
+---
+question: |
+    Do you have any income that is NOT from a job?
+yesno: non_job_income.there_are_any
+---
+question: |
+    Do you have any income from a job?
+yesno: jobs.there_are_any
+---
+question: |
+    What is your ${ ordinal(i) } job?
+fields:
+    - Job: jobs[i].name
+---
+question: |
+    What is your ${ ordinal(i) } source of income that is not from a job?
+fields: 
+  - Non Job Income Source Name: non_job_income[i].name
+    choices:
+      - Social Security
+      - Public Assistance (Food Stamps, Cash Assistance)
+      - EAEDC
+      - Food Stamps
+      - Pension/Annuity/Retirement
+      - Unemployment
+      - Veterans Benefits
+      - Workers Compensation
+      - Fraternal Society Benefits
+      - Child Support or Alimony
+      - Rental Income/Investments
+      - Other
+  - Other: non_job_income[i].name
+    show if:
+      variable: non_job_income[i].name
+      is: Other
+---
+question: |
+  Tell me about your income from ${ jobs[i].name }
+fields:
+  - Do you get paid hourly?: jobs[i].is_hourly
+    datatype: yesnoradio
+  - Hourly rate: jobs[i].hourly_rate
+    datatype: currency
+    show if: jobs[i].is_hourly
+  - Average hours worked per period: jobs[i].hours_per_period
+    datatype: integer
+    show if: jobs[i].is_hourly
+  - Amount earned: jobs[i].value
+    datatype: currency
+    show if:
+      variable: jobs[i].is_hourly
+      is: False
+  - '': jobs[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+  Tell me about your income from ${ non_job_income[i].name }
+fields:
+  - Amount earned: non_job_income[i].value
+    datatype: currency
+  - '': non_job_income[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+    So far, the jobs you have put in include:
+    
+    % for source in jobs:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other jobs?
+yesno: jobs.there_is_another
+---
+question: |
+    So far, the non-job sources of income you have put in include:
+    
+    % for source in non_job_income:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other non-job sources of income?
+yesno: non_job_income.there_is_another
+---
+---
+attachment:
+  - name: Opening Case Memo
+    variable name: opening_case_memo
+    filename: opening_case_memo
+    valid formats:
+      - pdf
+    docx template file: opening_case_memo_template.docx
+---
+code: |
+  send_email(to='consumer-intake@gbls.org', subject=str(client.name.firstlast()) + "Opening Case Memo", attachments=opening_case_memo)
+  send_email_to_intake = True
+---
+event: final_screen
+mandatory: True
+question: |
+    Your interview is complete.
+    Your documents have been sent to your advocate.
+subquestion: |
+  You may now close this window.
