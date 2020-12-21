@@ -1,0 +1,185 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+---
+include:
+  - cru_affirmative_venue_complaint.yml
+
+---
+metadata:
+  title: |
+    Anti-Debt Collection Affirmative Lawsuit - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for advocates to prosecute anti-debt collection affirmative lawsuits. 
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2020-12-16
+---
+objects:
+  - client: Individual
+  - advocate: Individual
+  - collectors: CollectorList
+  - collector: Collector
+  - debts: DebtList
+  - damages: DamagesList
+---
+comment: |
+  ## Mandatory block. Controls the order in which 
+  ## the interview asks questions.
+mandatory: True
+code: |
+  multi_user = True
+  collectors.there_are_any = True
+  debts.there_are_any = True
+  damages.there_are_any = True
+  advocate_splash_screen
+  advocate.name.first
+  client.name.first
+  client.address.address
+  collectors.gather()
+  sort_collectors
+  debts.gather()
+  name_debts
+  damages.gather()
+  interview_umbrella_done
+---
+question: |
+  Welcome! You are here because you want to sue a debt collector. Good luck!
+field: advocate_splash_screen
+subquestion: |
+  Click "Continue" to keep going with the interview.  
+
+---
+question: |
+  Tell us about yourself, so we can sign your name on the bottom of things.
+fields:
+  - First Name: advocate.name.first
+  - Last Name: advocate.name.last
+  - Phone Number: advocate.phone_number
+  - Email: advocate.email
+  - BBO Number: advocate.bbo
+---
+question: |
+  Tell us your client's name.
+fields:
+  - First Name: client.name.first
+  - Last Name: client.name.last
+--- 
+question: |
+  Tell us about the ${ ordinal(i) } entity involved in your client's case. 
+fields:
+  - Collector: collectors[i].name
+  - Collector Type: collectors[i].collector_type
+    choices:
+      - debt buyer
+      - law firm
+      - other debt collector
+      - original creditor
+---
+question: |
+    So far, the entities you have put in include:
+    
+    % for entity in collectors:
+    * ${ entity.name }
+    % endfor
+    
+    Are there any other entities involved in your client's case?
+yesno: collectors.there_is_another
+---
+code: |
+  debt_collector_list = list()
+  original_creditor_list = list()
+  for entity in collectors:
+        if entity.collector_type == 'original creditor':
+           original_creditor_list.append(entity) 
+        else:
+          debt_collector_list.append(entity)
+  original_creditor_list.append("Unknown")
+  sort_collectors = True
+---
+question: |
+  Tell us about the ${ ordinal(i) } debt
+fields:
+  - Debt Collector: debts[i].debt_collectors
+    datatype: checkboxes
+    code: |
+      debt_collector_list
+  - Original Creditor: debts[i].original_creditor
+    code: |
+      original_creditor_list
+  - Amount: debts[i].amount
+    required: False
+  - Date of Default: debts[i].date_of_default
+    datatype: date
+    required: False
+---
+question: |
+  Does your client have any other debts?
+yesno: debts.there_is_another
+
+---
+code: |
+  try:
+    for debt in debts:
+      debt.name_debt()
+    name_debts = True
+  except:
+    raise Exception('something is wrong with your class method') 
+---
+question: |
+  Damages
+subquestion: |
+  Tell us about your client's damages.
+fields: 
+  - Financial Damages Amount: damages[i].financial_amount
+  - Financial Damages Description: damages[i].financial_description
+    datatype: area
+  - Emotional Damages Amount: damages[i].emotional_amount
+  - Emotional Damages Description: damages[i].emotional_description
+    datatype: area
+  - Fees to Date: damages[i].fees
+  - Costs to Date: damages[i].costs
+---
+code: |
+  damages.there_is_another = False
+---
+question: |
+  What do you want to do with this debt?
+field: interview_choice
+choices:
+  - Venue
+  - Other
+
+---
+code: |
+  if interview_choice == 'Venue':
+    interview_venue_done
+  elif interview_choice == 'Other':
+    placeholder_screen
+  interview_umbrella_done = True
+  
+---
+event: placeholder_screen
+question: |
+  This is a placeholder screen. There's nothing here yet.
+subquestion: |
+  :-(
+    
+---
+question: |
+  What is your address?
+fields:
+  - Street Address: client.address.address
+  - City: client.address.city
+  - State: client.address.state
+  - Zip: client.address.zip
+
+
+
+
+
+
