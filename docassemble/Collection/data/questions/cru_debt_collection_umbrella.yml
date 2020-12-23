@@ -11,13 +11,13 @@ include:
 ---
 metadata:
   title: |
-    Anti-Debt Collection Affirmative Lawsuit - Greater Boston Legal Services Consumer Rights Unit
+    Anti-Debt Collection Document Automation - Greater Boston Legal Services Consumer Rights Unit
   description: |
-    An interview for advocates to prosecute anti-debt collection affirmative lawsuits. 
+    An interview for advocates to automate documents related to debt collection defense and affirmative anti-debt collection claims. 
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-12-16
+  revision_date: 2020-12-23
 ---
 objects:
   - client: Individual
@@ -41,56 +41,91 @@ code: |
   client.name.first
   client.address.address
   collectors.gather()
-  sort_collectors
+  # sort_collectors
   debts.gather()
   name_debts
   damages.gather()
   interview_umbrella_done
 ---
 question: |
-  Welcome! You are here because you want to sue a debt collector. Good luck!
+  Welcome! 
 field: advocate_splash_screen
 subquestion: |
-  Click "Continue" to keep going with the interview.  
+  This is the GBLS Consumer Rights Unit Document Automation Tool.
+under: |
+  Click "Continue" to keep going with the interview.
+  
+  To ask questions or report bugs, email Matt Brooks at mbrooks@gbls.org
 
 ---
 question: |
-  Tell us about yourself, so we can sign your name on the bottom of things.
+  Advocate Information
 fields:
   - First Name: advocate.name.first
   - Last Name: advocate.name.last
   - Phone Number: advocate.phone_number
   - Email: advocate.email
   - BBO Number: advocate.bbo
+    required: False
+subquestion: |
+  This information will go at the bottom of pleadings, letters, etc.
+under: |
+  Note: On this and other screens, fields with a red asterik are required, and fields with no asterik (like BBO Number) are not.
 ---
 question: |
-  Tell us your client's name.
+  Client Information
+subquestion: |
+  This information will be used to fill in information about your client in various documents, including pronouns.
 fields:
   - First Name: client.name.first
   - Last Name: client.name.last
+  - Client's Gender: client.gender
+    input type: radio
+    choices:
+      - Male: male
+      - Female: female
+      - Other: other
 --- 
 question: |
-  Tell us about the ${ ordinal(i) } entity involved in your client's case. 
+  Collector Information
+subquestion: |
+  Tell us about the ${ ordinal(i) } **collector** involved in your client's case. 
+under: |
+  Here, a **collector** means an original creditor, debt buyer, debt collection law firm, or other debt collector.
 fields:
-  - Collector: collectors[i].name
+  - Collector Name: collectors[i].name
   - Collector Type: collectors[i].collector_type
     choices:
-      - debt buyer
-      - law firm
-      - other debt collector
-      - original creditor
+      - Original Creditor: original creditor
+      - Debt Buyer: debt buyer
+      - Law Firm: law firm
+      - Other Debt Collector: other debt collector
+auto terms:
+  original creditor: | 
+    Like Capital One.
+  debt buyer: |
+     Such as Midland Funding or Portfolio Recovery Associates.
+  debt collection law firm: |
+    For example, Schreiber Law. 
+  other debt collector: |
+    In most instances, entities that send collection letters or make collection calls but are not law firms and do not own debts.
+      
+      
 ---
 question: |
-    So far, the entities you have put in include:
+  Do you want to add another collector?
+subquestion: |
+    So far, the collectors you have put in include:
     
     % for entity in collectors:
-    * ${ entity.name }
+    * **${ entity.name }**
     % endfor
     
-    Are there any other entities involved in your client's case?
+    Are there any other collectors involved in your client's case?
 yesno: collectors.there_is_another
 ---
-code: |
+comment: |
+  commenting this out because I don't think we need it anymore.
   debt_collector_list = list()
   original_creditor_list = list()
   for entity in collectors:
@@ -101,16 +136,22 @@ code: |
   original_creditor_list.append("Unknown")
   sort_collectors = True
 ---
+comment: |
+  datatype: object and datatype: object_checkboxes are crucial to this question. They make sure that the attribute values we're looking for with these fields are defined as references to actual objects, as opposed to strings that just match the objects' .name attributes.
 question: |
   Tell us about the ${ ordinal(i) } debt
+subquestion: |
+  Here, you enter information about each specific debt your client has.
 fields:
   - Debt Collector: debts[i].debt_collectors
-    datatype: checkboxes
-    code: |
-      debt_collector_list
+    datatype: object_checkboxes
+    choices: |
+      [collector for collector in collectors if collector.collector_type != 'original creditor']
   - Original Creditor: debts[i].original_creditor
-    code: |
-      original_creditor_list
+    datatype: object
+    required: False
+    choices: |
+      [collector for collector in collectors if collector.collector_type == 'original creditor']
   - Amount: debts[i].amount
     required: False
   - Date of Default: debts[i].date_of_default
@@ -118,10 +159,14 @@ fields:
     required: False
 ---
 question: |
+  Other Debts
+subquestion: |
   Does your client have any other debts?
 yesno: debts.there_is_another
 
 ---
+comments: |
+  defines the .name attribute of each debt so we can reliably reference each debt in questions
 code: |
   try:
     for debt in debts:
@@ -136,27 +181,36 @@ subquestion: |
   Tell us about your client's damages.
 fields: 
   - Financial Damages Amount: damages[i].financial_amount
+    datatype: currency
   - Financial Damages Description: damages[i].financial_description
     datatype: area
   - Emotional Damages Amount: damages[i].emotional_amount
+    datatype: currency
   - Emotional Damages Description: damages[i].emotional_description
     datatype: area
   - Fees to Date: damages[i].fees
+    datatype: currency
   - Costs to Date: damages[i].costs
+    datatype: currency
 ---
+# Damages() is currently structured to be an element in a DamagesList(). This behavior could be useful if we want to switch from talking about clients' damages generally, as we do here, to making damages an attribute of each debt. For now, this code block makes sure the user isn't asked if there are more damages, because that wouldn't make sense with the way the interview is currently written.
 code: |
   damages.there_is_another = False
 ---
+comment: |
+  Points the user to one of several (eventually) several included YAML files containing other interviews. See the below code block.
 question: |
-  What do you want to do with this debt?
+  What Next?
+subquestion: |
+  Choose what kind of document you want to create.
 field: interview_choice
 choices:
-  - Venue
+  - Affirmative Complaint (Venue Violation)
   - Other
 
 ---
 code: |
-  if interview_choice == 'Venue':
+  if interview_choice == 'Affirmative Complaint (Venue Violation)':
     interview_venue_done
   elif interview_choice == 'Other':
     placeholder_screen
@@ -164,19 +218,26 @@ code: |
   
 ---
 event: placeholder_screen
-question: |
-  This is a placeholder screen. There's nothing here yet.
 subquestion: |
+  This is a placeholder screen. There's nothing here yet.
+question: |
   :-(
     
 ---
 question: |
-  What is your address?
+  Address
+subquestion: |
+  Fill in the address information that you want to appear on signature blocks, etc.
 fields:
   - Street Address: client.address.address
+    default: 197 Friend Street
   - City: client.address.city
+    default: Boston
   - State: client.address.state
+    default: MA
   - Zip: client.address.zip
+    default: '02114'
+    datatype: number
 
 
 
