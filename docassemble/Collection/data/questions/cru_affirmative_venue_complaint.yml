@@ -7,13 +7,13 @@ modules:
 ---
 metadata:
   title: |
-    Anti-Debt Collection Venu Violation Affirmative Lawsuit - Greater Boston Legal Services Consumer Rights Unit
+    Anti-Debt Collection Venue Violation Affirmative Lawsuit - Greater Boston Legal Services Consumer Rights Unit
   description: |
     An interview for advocates to prosecute anti-debt collection affirmative lawsuits for venue violations. 
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-12-23
+  revision_date: 2020-12-29
 ---
 objects:
   - client: Individual

@@ -17,7 +17,7 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-12-23
+  revision_date: 2020-12-29
 ---
 objects:
   - client: Individual
@@ -39,7 +39,7 @@ code: |
   advocate_splash_screen
   advocate.name.first
   client.name.first
-  client.address.address
+  # client.address.address
   collectors.gather()
   # sort_collectors
   debts.gather()
@@ -65,6 +65,15 @@ fields:
   - Last Name: advocate.name.last
   - Phone Number: advocate.phone_number
   - Email: advocate.email
+  - Street Address: advocate.address.address
+    default: 197 Friend Street
+  - City: advocate.address.city
+    default: Boston
+  - State: advocate.address.state
+    default: MA
+  - Zip: advocate.address.zip
+    default: '02114'
+    datatype: number
   - BBO Number: advocate.bbo
     required: False
 subquestion: |
@@ -227,7 +236,7 @@ question: |
 question: |
   Address
 subquestion: |
-  Fill in the address information that you want to appear on signature blocks, etc.
+  Please provide your client's CURRENT address information.
 fields:
   - Street Address: client.address.address
     default: 197 Friend Street
