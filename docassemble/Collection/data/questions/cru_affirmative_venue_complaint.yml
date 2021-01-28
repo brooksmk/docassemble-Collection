@@ -13,7 +13,7 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-12-29
+  revision_date: 2020-01-25
 ---
 objects:
   - client: Individual
@@ -29,10 +29,9 @@ comment: |
   ## of the umbrella interview.
 code: |
   multi_user = True
-  which_debts_in_litigation
-  which_addresses
-  defensive_case_numbers
-  affirmative_case_info
+  debt.address.address
+  debt.defensive_case_number
+  debt.affirmative_case_state_or_federal
   set_case_heading
   if you_are_done:
     interview_venue_done = True
@@ -51,72 +50,25 @@ code: |
   debt_names = dict()
   for debt in debts:
     debt_names.update({debt.name: debt.name})
-   
----
-comments: |
-  this question results in a DADict() called defendants_list with keys equivalent to debt.name and boolean values (True if selected by user, else False)
-question: |
-  Which debts are you trying to sue on?
-fields:
-  - Proposed Defendant(s): defendants_list
-    datatype: checkboxes
-    code: |
-      debt_names
----
-comment: |
-  defines the .in_litigation attribute of each debt based on whether each key (debt.name) in defendants_list has a value of True of False
-code: |
-  debts_in_litigation = list()
-  for debt in debts:
-      if defendants_list[str(debt.name)]:
-        debt.in_litigation = True
-        debts_in_litigation.append(debt)
-      else:
-        debt.in_litigation = False
-  which_debts_in_litigation = True
----
-# controls which addresses docassemble asks for via its gathering process. Could be combined with above code block as follows:
-# for debt in debts:
-     # if defendants_list[str(debt.name)]:
-     #   debt.address.address
-code: |
-  for debt in debts:
-    if debt.in_litigation:
-      debt.address.address
-  which_addresses = True
 ---
 question: |
   Address Information
 subquestion: |
   Fill in the address where the client lived when the ${ debt.name } was incurred.
 fields:
-  - Street Address: debts[i].address.address
-  - City: debts[i].address.city
-  - State: debts[i].address.state
-  - Zip: debts[i].address.zip
----
-# again, tells docassemble which debts need to have .defensive_case_number gathered (here, only those debts whose .in_litigation attribute is True)
-code: |
-  for debt in debts:
-    if debt.in_litigation:
-      debt.defensive_case_number
-  defensive_case_numbers = True
+  - Street Address: debt.address.address
+  - City: debt.address.city
+  - State: debt.address.state
+  - Zip: debt.address.zip
 ---
 question: |
   Venue Violating Case Information
 subquestion: |
   Enter the information about the case involving the ${ debt.name } that was filed in violation of 1692i (FDCPA Venue Provisions)
 fields:
-  - Venue Violating Case Number: debts[i].defensive_case_number
-  - Venue Violating Case Filing Date: debts[i].defensive_case_filing_date
+  - Venue Violating Case Number: debt.defensive_case_number
+  - Venue Violating Case Filing Date: debt.defensive_case_filing_date
     datatype: date
----
-# again, tells docassemble which debts need to have .affirmative_case_state_or_federal gathered (here, only those debts whose .in_litigation attribute is True)
-code: |
-  for debt in debts:
-    if debt.in_litigation:
-      debt.affirmative_case_state_or_federal
-  affirmative_case_info = True
 --- 
 comment: |
   There's currently a bug with this question block or the code block above where if the *first* debt is in federal court it gets asked about twice. Tested this with two debts, but not with anything else.
@@ -125,26 +77,29 @@ question: |
 subquestion: |
   Tell us about the court where you'll file the complaint in the case involving ${ debt.name }.
 fields:
-  - Are you filing in state court or federal court?: debts[i].affirmative_case_state_or_federal
+  - Are you filing in state court or federal court?: debt.affirmative_case_state_or_federal
     choices:
       - 'State'
       - 'Federal'
-  - Court type: debts[i].affirmative_case_court_type
+  - Court type: debt.affirmative_case_court_type
     choices:
       - 'Superior'
       - 'District'
       - 'Boston Municipal'
     show if:
-      variable: debts[i].affirmative_case_state_or_federal
+      variable: debt.affirmative_case_state_or_federal
       is: 'State'
-  - Division name: debts[i].affirmative_case_court_division
+  - Division name: debt.affirmative_case_court_division 
     show if:
-      variable: debts[i].affirmative_case_state_or_federal
+      variable: debt.affirmative_case_state_or_federal
       is: 'State'
 
 ---
 question: |
   Here is your document
+subquestion: |
+  * The FDCPA statute of limitations on the ${ debt.name } runs on **${ debt.defensive_case_filing_date + date_interval(years=1) } **
+  * The 93A status of limitations on the ${ debt.name } runs on **${ debt.defensive_case_filing_date + date_interval(years=4) } **
 attachment:
   name: Affirmative Venue complating
   filename: affirmative_venue_complaint
@@ -154,17 +109,15 @@ sets: you_are_done
 comment: |
   Populates various pieces of information you can infer based on whether the court is state or federal. Probably should go into a module, eventually.
 code: |
-  complaint_heading = list()
-  for debt in debts:
-    if debts[i].affirmative_case_state_or_federal == 'State':
-      debt.jurisdiction_statute = 'TK state jurisdiction statute'
-      debt.jurisdiction_citations = 'TK state jurisdiction citations'
-    else:
-      debt.jurisdiction_statute = 'TK federal jurisdiction statute'
-      debt.jurisdiction_citations = 'TK federal jurisdiction citations'
-      debt.affirmative_case_court_type = 'Federal District Court'
-      debt.affirmative_case_court_division = ' '
-    debt.complaint_heading = str(debt.affirmative_case_court_division + ' ' + debt.affirmative_case_court_type)
+  if debt.affirmative_case_state_or_federal == 'State':
+     debt.jurisdiction_statute = 'TK state jurisdiction statute'
+     debt.jurisdiction_citations = 'TK state jurisdiction citations'
+  else:
+     debt.jurisdiction_statute = 'TK federal jurisdiction statute'
+     debt.jurisdiction_citations = 'TK federal jurisdiction citations'
+     debt.affirmative_case_court_type = 'Federal District Court'
+     debt.affirmative_case_court_division = ' '
+  debt.complaint_heading = str(debt.affirmative_case_court_division + ' ' + debt.affirmative_case_court_type)
   set_case_heading = True
 ---
 comment: |
