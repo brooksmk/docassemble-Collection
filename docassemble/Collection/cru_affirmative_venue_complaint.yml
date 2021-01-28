@@ -1,0 +1,240 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+---
+metadata:
+  title: |
+    Anti-Debt Collection Venue Violation Affirmative Lawsuit - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for advocates to prosecute anti-debt collection affirmative lawsuits for venue violations. 
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2020-01-25
+---
+objects:
+  - client: Individual
+  - advocate: Individual
+  - recipients: CollectorList
+  - collector: Collector
+  - debts: DebtList
+  - defendants_list: DebtList
+---
+comment: |
+  ## Controls the order in which 
+  ## the interview asks questions. Doesn't need to be mandatory because 
+  ## of the umbrella interview.
+code: |
+  multi_user = True
+  debt.address.address
+  debt.defensive_case_number
+  debt.affirmative_case_state_or_federal
+  set_case_heading
+  if you_are_done:
+    interview_venue_done = True
+
+---
+question: |
+  Welcome! You are here because you want to sue a debt collector. Good luck!
+field: advocate_splash_screen
+subquestion: |
+  Click "Continue" to keep going with the interview.  
+
+---
+comment: |
+  creates a data structure with strings matching the names of each debt. This has to be a dict() as opposed to a list() because the question for which debt_names will be used below is datatype: checkboxes, which expects a dict().
+code: |
+  debt_names = dict()
+  for debt in debts:
+    debt_names.update({debt.name: debt.name})
+---
+question: |
+  Address Information
+subquestion: |
+  Fill in the address where the client lived when the ${ debt.name } was incurred.
+fields:
+  - Street Address: debt.address.address
+  - City: debt.address.city
+  - State: debt.address.state
+  - Zip: debt.address.zip
+---
+question: |
+  Venue Violating Case Information
+subquestion: |
+  Enter the information about the case involving the ${ debt.name } that was filed in violation of 1692i (FDCPA Venue Provisions)
+fields:
+  - Venue Violating Case Number: debt.defensive_case_number
+  - Venue Violating Case Filing Date: debt.defensive_case_filing_date
+    datatype: date
+--- 
+comment: |
+  There's currently a bug with this question block or the code block above where if the *first* debt is in federal court it gets asked about twice. Tested this with two debts, but not with anything else.
+question: |
+  Filing Court Information
+subquestion: |
+  Tell us about the court where you'll file the complaint in the case involving ${ debt.name }.
+fields:
+  - Are you filing in state court or federal court?: debt.affirmative_case_state_or_federal
+    choices:
+      - 'State'
+      - 'Federal'
+  - Court type: debt.affirmative_case_court_type
+    choices:
+      - 'Superior'
+      - 'District'
+      - 'Boston Municipal'
+    show if:
+      variable: debt.affirmative_case_state_or_federal
+      is: 'State'
+  - Division name: debt.affirmative_case_court_division 
+    show if:
+      variable: debt.affirmative_case_state_or_federal
+      is: 'State'
+
+---
+question: |
+  Here is your document
+subquestion: |
+  * The FDCPA statute of limitations on the ${ debt.name } runs on **${ debt.defensive_case_filing_date + date_interval(years=1) } **
+  * The 93A status of limitations on the ${ debt.name } runs on **${ debt.defensive_case_filing_date + date_interval(years=4) } **
+attachment:
+  name: Affirmative Venue complating
+  filename: affirmative_venue_complaint
+  docx template file: venue_complaint_template.docx
+sets: you_are_done
+---  
+comment: |
+  Populates various pieces of information you can infer based on whether the court is state or federal. Probably should go into a module, eventually.
+code: |
+  if debt.affirmative_case_state_or_federal == 'State':
+     debt.jurisdiction_statute = 'TK state jurisdiction statute'
+     debt.jurisdiction_citations = 'TK state jurisdiction citations'
+  else:
+     debt.jurisdiction_statute = 'TK federal jurisdiction statute'
+     debt.jurisdiction_citations = 'TK federal jurisdiction citations'
+     debt.affirmative_case_court_type = 'Federal District Court'
+     debt.affirmative_case_court_division = ' '
+  debt.complaint_heading = str(debt.affirmative_case_court_division + ' ' + debt.affirmative_case_court_type)
+  set_case_heading = True
+---
+comment: |
+  Could use this code to auto-fill state court information based on case number, but that's probably not of much use to advocates. The below was originally coded with laypeople endusers in mind, because we could ask them for one piece of information--case number--and get all the information encoded in that.
+  
+  For advocates, in contrast, we'll probably get enough mistakes from a mistyped case number that it won't be worth the small amount of time saved typing in fewer fields. In practice, it's rare as an advocate to have a document that contains the case number but not the court information.
+  
+	ma_court_list_by_code = { '01': 'Boston Municipal Central', 
+	'02':   'Roxbury Municipal', 
+  '03':   'South Boston Municipal', 
+	'04':	'Charlestown Municipal', 
+	'05':   'East Boston Municipal',
+	'06':	'West Roxbury Municipal',
+	'07':	'Dorchester Municipal',
+	'08':	'Brighton Municipal',
+	'09':	'Brookline District Court',
+	'10':	'Somerville District Court',
+	'11':	'Lowell District Court',
+	'12':	'Newton District Court',
+	'13':	'Lynn District Court',
+	'14':	'Chelsea District Court',
+	'15':	'Brockton District Court',
+	'16':	'Fitchburg District Court',
+	'17':	'Holyoke District Court',
+	'18':	'Lawrence District Court',
+	'20':	'Chicopee District Court',
+	'21':	'Marlboro District Court',
+	'22':	'Newburyport District Court',
+	'23':	'Springfield District Court',
+	'25':	'Barnstable District Court',
+	'26':	'Orleans District Court',
+	'27':	'Pittsfield District Court',
+	'28':	'Northern Berkshire District Court',
+	'29':	'Southern Berkshire District Court',
+	'31':	'Taunton District Court',
+	'32':	'Fall River District Court',
+	'33':	'New Bedford District Court',
+	'34':	'Attleboro District Court',
+	'35':	'Edgartown District Court',
+	'36':	'Salem District Court',
+	'38':	'Haverhill District Court',
+	'39':	'Gloucester District',
+	'40':	'Ipswich District Court',
+	'41':	'Greenfield District Court',
+	'42':	'Orange District Court',
+	'43':	'Palmer District Court',
+	'44':	'Westfield District Court',
+	'45':	'Northampton District Court',
+	'47':	'Concord District Court',
+	'48':	'Ayer District Court',
+	'49':	'Framingham District Court',
+	'50':	'Malden District Court',
+	'51':	'Waltham District Court',
+	'52':	'Cambridge District Court',
+	'53':	'Woburn District Court',
+	'54':	'Dedham District Court',
+	'55':	'Stoughton District Court',
+	'56':	'Quincy District Court',
+	'57':	'Wrentham District Court',
+	'58':	'Hingham District Court',
+	'59':	'Plymouth District Court',
+	'60':	'Wareham District Court',
+	'61':	'Leominster District Court',
+	'62':	'Worcester District Court',
+	'63':	'Gardner District Court',
+	'64':	'Dudley District Court',
+	'65':	'Uxbridge District Court',
+	'66':	'Milford District Court',
+	'67':	'Westborough District Court',
+	'68':	'Clinton District Court',
+	'69':	'East Brookfield District Court',
+	'70':	'Winchendon District Court',
+	'71':	'Suffolk Juvenile',
+	'72':	'Barnstable Superior Court',
+	'73':	'Bristol Superior Court',
+	'74':	'Dukes Superior Court',
+	'75':	'Nantucket Superior Court',
+	'76':	'Berkshire Superior Court',
+	'77':	'Essex Superior Court',
+	'78':	'Franklin Superior Court',
+	'79':	'Hampden Superior Court',
+	'80':	'Hampshire Superior Court',
+	'81':	'Middlesex Superior Court',
+	'82':	'Norfolk Superior Court',
+	'83':	'Plymouth Superior Court',
+	'84':	'Suffolk Superior Court',
+	'85':	'Worcester Superior Court',
+	'86':	'Peabody District Court',
+	'87':	'Natick District Court',
+	'88':	'Nantucket District Court',
+	'89':	'Falmouth District Court',
+	'98':	'Eastern Hampshire District Court',
+  '99': 'Unknown Court'}
+	
+  try:
+    court_code = case_number[2] + case_number[3]
+  except:
+    court_code = '99'
+	try:
+    court_name = ma_court_list_by_code[court_code]
+  except:
+    court_name = 'Unknown Court'
+    
+	if court_code in ['01', '02', '03', '04', '05', '06', '07', '08']:
+		court_department = 'Municipal Court'
+	elif court_code in ['72', '73', '74', '75', '76', '77', '78', '79', '80',
+    '81', '82', '83', '84', '85']:
+		court_department = 'Superior Court'
+	else:
+		court_department = 'District Court'
+        
+	try:
+    if case_number[4] + case_number[5] in ['sc', 'SC', 'Sc', 'sC']:
+		  small_claims = True
+  except:
+    small_claims = False
+	else:
+		small_claims = False
+
+
