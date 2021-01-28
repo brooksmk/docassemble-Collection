@@ -29,8 +29,10 @@ class Debt (DAObject):
         self.initializeAttribute('address', Address)
         self.initializeAttribute('damages', Damages)
     def name_debt(self): # provides predictability to how object names are displayed as text
-        if hasattr(self, 'original_creditor'):
-          self.name = str(self.original_creditor) + ' ' + '$' + str(self.amount) + ' ' + 'debt'
+        for collector in self.collector_list:
+          if collector.collector_type == 'original creditor':
+            self.name = str(collector) + ' ' + '$' + str(self.amount) + ' ' + 'debt'
+            break
         else:
           self.name = 'Unknown' + ' ' + '$' + str(self.amount) + ' ' + 'debt'
     @property
