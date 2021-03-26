@@ -1,0 +1,124 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+  - .discovery
+---
+metadata:
+  title: |
+    Anti-Debt Collection Discovery - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for advocates to create discovery for consumer-side debt collection actions.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2020-03-19
+---
+objects:
+  - client: Individual
+  - advocate: Individual
+  - defendant: Collector
+  - debts: DebtList
+  - defendants_list: DebtList 
+  - ints_list: DiscoveryList
+  - drqs_list: DiscoveryList
+---
+comment: |
+  ## Controls the order in which 
+  ## the interview asks questions. Doesn't need to be mandatory because 
+  ## of the umbrella interview.
+code: |
+  multi_user = True
+  build_discovery_lists
+  build_discovery_fields
+  choose_ints
+  choose_drqs
+  if discovery_done:
+    discovery_interview_done = True
+---
+question: |
+  Which interrogatories do you want?
+fields:
+  - "Select the interrogatories you want": ints_checked
+    datatype: checkboxes
+    code: | 
+      ints_fields
+continue button field: choose_ints
+
+---
+question: |
+  Which document requests do you want?
+fields:
+  - "Select the document requests you want": drqs_checked
+    datatype: checkboxes
+    code: |
+      drqs_fields
+continue button field: choose_drqs
+---
+question: |
+  Discovery Time Period
+subquestion: |
+  What time period do you want these discovery requests to cover?
+fields:
+  - 'Discovery Time Period': discovery_time_period
+---
+question: |
+  Compliance Information
+subquestion: |
+  Do you want information related to compliance and training?
+yesno: need_complaince_info
+---
+question: |
+  Identifying the Debt for discovery
+subquestion: |
+  How do you want to identify the debt for discovery purposes?
+fields:
+  - 'Debt Name for Discovery': debt_information
+---
+question: |
+	Here are your motion and certificate of service:
+subquestion: |
+  ${ pdf_concatenate(cru_rpds_variable, cru_ints_variable) }
+	
+
+continue button field: discovery_done
+---
+attachment:
+	- name: cru_ints
+	  variable name: cru_ints_variable
+	  filename: cru_ints_file
+	  docx template file: cru_discovery_ints.docx
+---
+attachment:
+  - name: cru_rpds
+    variable name: cru_rpds_variable
+    filename: cru_rpds_file
+    docx template file: cru_discovery_rpds.docx
+---
+code: |
+    discovery_link_url = 'data/sources/discovery_list.csv'
+    discovery_list = load_from_csv(discovery_link_url)
+    #   """ Return a list containing a dictionary for each line of the CSV file at relative_path. Uses Docassemble path_and_mimetype to locate the path.
+    for item in discovery_list:
+      if item['Type'].lower() == 'int':
+        ints_list.append(item)
+      if item['Type'].lower() == 'drq':
+        drqs_list.append(item)
+        
+    build_discovery_lists = True
+---
+code: |  
+  ints_fields = []
+  ints_list.there_is_another = False
+  for item in ints_list:
+    ints_fields.append({str(item['Variable']): str(item['Description'])})
+  drqs_fields = []
+  drqs_list.there_is_another = False
+  for item in drqs_list:
+    drqs_fields.append({str(item['Variable']): str(item['Description'])})
+   
+  build_discovery_fields = True
+  
+      
