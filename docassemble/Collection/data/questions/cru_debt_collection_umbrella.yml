@@ -7,6 +7,7 @@ modules:
 ---
 include:
   - cru_affirmative_venue_complaint.yml
+  - cru_discovery.yml
 
 ---
 metadata:
@@ -17,7 +18,7 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-01-25
+  revision_date: 2020-03-19
 ---
 objects:
   - client: Individual
@@ -41,7 +42,7 @@ code: |
   client.name.first
   debt.amount
   collectors.gather()
-  populate_collector_list
+  #populate_debt_infotmation
   name_debts
   damages.gather()
   interview_umbrella_done
@@ -131,11 +132,9 @@ auto terms:
 comments: |
   defines the .name attribute of the debt so we can reliably reference the debt in questions
 code: |
-  try:
-    debt.name_debt()
-    name_debts = True
-  except:
-    raise Exception('something is wrong with your class method')       
+  debt.name_debt()
+  name_debts = True
+       
 ---
 comment: |
   associates the collectors with the debt that the interview is about.
@@ -207,12 +206,15 @@ subquestion: |
 field: interview_choice
 choices:
   - Affirmative Complaint (Venue Violation)
+  - Discovery
   - Other
 
 ---
 code: |
   if interview_choice == 'Affirmative Complaint (Venue Violation)':
     interview_venue_done
+  elif interview_choice == "Discovery":
+    discovery_interview_done
   elif interview_choice == 'Other':
     placeholder_screen
   interview_umbrella_done = True
