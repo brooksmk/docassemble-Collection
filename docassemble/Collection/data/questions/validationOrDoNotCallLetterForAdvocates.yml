@@ -14,22 +14,40 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2019-03-02
+  revision_date: 2021-04-02
 ---
 objects:
   - collector: Person
   - client: Person
   - advocate: Person
 ---
-question: |
-  What is your client's full name?
-fields:
-  - Client's full name: client.name.text
+code: |
+  # List the variables in order below
+  client.name.first
+  advocate.name.first
+  validation
+  collector.address.address
+  collector_is_debt_collector
+  account_number_known
+  advocate_wants_to_add_additional_information
+  interview_order = True
+---
 ---
 question: |
+  Client's Name
+subquestion: |
+  What is your client's full name?
+fields:
+  - Client's first name: client.name.first
+  - Client's last name: client.name.last
+---
+question: |
+  Your Name
+subquestion: |
   What is your full name?
 fields:
-  - Your full name: advocate.name.text
+  - Your first name: advocate.name.first
+  - Your last name: advocate.name.last
 ---
 question: |
   Do you want to write a validation letter or a do not call letter?
@@ -39,9 +57,11 @@ buttons:
   - "Do not call": False
 ---
 question: |
+  Collector information
+subquestion: |
    Fill in the following information about the entity
    you are writing the letter to.
-subquestion: |
+under: |
    You will fill in information about the original creditor later.
 fields:
   - Entity's Name: collector.name.text
@@ -53,49 +73,44 @@ fields:
   - state: collector.address.state
     code: |
       states_list()
-    default: "MA"
   - zip: collector.address.zip
 ---
 question: |
-  Please answer the following question
-fields:
-  - "Do you know your client's account number?": account_number_known
-    datatype: yesnoradio
-  - "What is the account number?": account_number
-    show if: account_number_known
----
-question: |
+  Debt Collector or Original Creditor
+subquestion: |
   Is the company you are writing to a debt collector or an original creditor?
 field: collector_is_debt_collector
 buttons: 
     - "Original Creditor": False
     - "Debt Collector": True
 ---
+code: |
+  if collector_is_debt_collector:
+    need_oc_info = True
+  else:
+    oc_name = collector.name.text
+    need_oc_info = False
+    oc_known = False
+---
 question: |
-    What is the name of the original creditor?
-fields: 
-  - Name of company: original_creditor_name
-showif: collector_is_debt_collector = False
+  Account Number and Original Creditor
+fields:
+  - "Do you know your client's account number?": account_number_known
+    datatype: yesnoradio
+  - "What is the account number?": account_number
+    show if: account_number_known
+  - "Do you know the name of the original creditor?": oc_known
+    datatype: yesnoradio
+    show if:
+      code: | 
+        need_oc_info
+  - "What is the original creditor's name?": oc_name
+    show if: oc_known
 ---
 question: |
   Do you want the letter to contain a request to send all future communications
   for your client to you?
 yesno: communications_go_to_advocate
----
-code: |
-  if collector_is_debt_collector:
-    oc_name = original_creditor_name
-  else:
-    oc_name = collector.name
----
-question: |
-  Sign your name here.
-subquestion: |
-  Your signature will appear at the bottom
-  of the letter.
-signature: advocate_signature
-under: |
-  ${ advocate.name.text }
 ---
 question: |
     Is there anything else you would like to add to the letter?
@@ -110,19 +125,6 @@ fields:
       show if:
         variable: advocate_wants_to_add_additional_information
         is: True
----
-code: |
-  # List the variables in order below
-  client.name.text
-  advocate.name.text
-  validation
-  collector.address.address
-  collector_is_debt_collector
-  oc_name
-  account_number_known
-  advocate_wants_to_add_additional_information
-  advocate_signature
-  interview_order = True
 ---
 mandatory: True
 need:
