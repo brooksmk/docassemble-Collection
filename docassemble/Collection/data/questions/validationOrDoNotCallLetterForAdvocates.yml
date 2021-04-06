@@ -14,7 +14,7 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2021-04-02
+  revision_date: 2021-04-06
 ---
 objects:
   - collector: Person
@@ -90,7 +90,7 @@ code: |
   else:
     oc_name = collector.name.text
     need_oc_info = False
-    oc_known = False
+    oc_known = True
 ---
 question: |
   Account Number and Original Creditor
@@ -108,6 +108,8 @@ fields:
     show if: oc_known
 ---
 question: |
+  Future Communications
+subquestion: |
   Do you want the letter to contain a request to send all future communications
   for your client to you?
 yesno: communications_go_to_advocate
