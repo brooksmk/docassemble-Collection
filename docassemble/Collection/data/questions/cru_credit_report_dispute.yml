@@ -1,0 +1,109 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+---
+metadata:
+  title: |
+    Anti-Debt Collection Document Automation - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for advocates to automate documents related to debt collection defense and affirmative anti-debt collection claims. 
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2021-04-02
+---
+objects:
+  - client: Individual
+  - advocate: Individual
+  - collectors: CollectorList
+  - collector: Collector
+  - debts: DebtList
+  - debt: Debt
+  - report_list: CreditReportList
+  - report: CreditReport
+  - report.disputed_item_list: DisputedItemList
+  - disputed_item: DisputedItem
+  - report_list.consumer_reporting_agency: ConsumerReportingAgency
+
+---
+comment: |
+  ## Controls the order in which 
+  ## the interview asks questions. Doesn't need to be mandatory because 
+  ## of the umbrella interview.
+code: |
+  multi_user = True
+  report_list.there_are_any = True
+  report_list.disputed_item_list.there_are_any = True
+  # report_list.gather()
+
+---
+question: |
+  Credit Reports
+subquestion: |
+  Tell us about the credit report you want to dispute.
+fields:
+  - Credit Reporting Agency: report_list[i].consumer_reporting_agency
+  - Street Address: report_list[i].consumer_reporting_agency.address.address
+  - City: report_list[i].consumer_reporting_agency.address.city
+  - State: report_list[i].consumer_reporting_agency.address.state
+  - Zip: report_list[i].consumer_reporting_agency.address.zip
+    datatype: number
+  - Report Date: report_list[i].date
+
+---
+question: |
+  Disputed Items
+subquestion: |
+  Which debts on ${report_list[i]} are you disputing?
+fields:
+  no label: report_list[i].disputed_item_list
+  datatype: object_checkboxes
+  code: |
+    debts
+
+---
+question: |
+  ${report_list[i].disputed_item_list[j]}
+subquestion: |
+  Tell us about your dispute over ${report_list[i].disputed_item_list[j]} on ${report_list[i]}
+fields:
+  - ID Number: report_list[i].disputed_item_list[j].id_number
+    required: False
+  - Explanation: report_list[i].disputed_item_list[j].explanation
+  - Solution: report_list[i].disputed_item_list[j].solution
+
+---
+question: |
+  Client Information
+fields:
+  - "What are the last four digits of your client's social security number?": client.ssn_last_four
+    datatype: number
+  - "What is your client's date of birth?": client.date_of_birth
+    datatype: date
+
+---
+question: |
+  Enclosures
+subquestion: |
+  Are you including any enclosures with your dispute of ${report_list[i]}
+yesno: enclosures.there_are_any
+
+---
+question: |
+  ${ordinal(j)} Enclosure
+subquestion: |
+  Tell us about the ${ordinal(i)} enclosure
+fields:
+  - Describe Enclosure: report_list[i].enclosures[j]
+  
+
+---
+mandatory: True
+attachment:
+  - name: credit_report_dispute_template
+    variable name: credit_report_dispute_template_variable
+    filename: credit_report_dispute_template_file
+    docx template file: credit_report_dispute_template.docx
