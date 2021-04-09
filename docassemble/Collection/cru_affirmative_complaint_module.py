@@ -51,7 +51,14 @@ class Debt (DAObject):
         # self.in_court
         # self.case
         return True
-      
+
+class DebtList(DAList):
+    """Represents a list of Debt objects."""
+    def init(self, *pargs, **kwargs):
+        super(DebtList, self).init(*pargs, **kwargs)
+        self.object_type = Debt
+        self.complete_attribute = "debt_complete"
+
 class Damages(DAObject):
   """Represents damages traceable to a particular debt"""
   def init(self, *pargs, **kwargs):
@@ -72,13 +79,68 @@ class DamagesList(DAList):
     super(DamagesList, self).init(*pargs, **kwargs)
     self.object_type = Damages
     self.complete_attribute = 'damages_complete'
-      
-class DebtList(DAList):
-    """Represents a list of Debt objects."""
-    def init(self, *pargs, **kwargs):
-        super(DebtList, self).init(*pargs, **kwargs)
-        self.object_type = Debt
-        self.complete_attribute = "debt_complete"
+    
+
+class CreditReport(DAObject):
+  """Represents a single consumer report."""
+  def init(self, *pargs, **kwargs):
+    super(CreditReport, self).init(*pargs, **kwargs)
+    self.initializeAttribute('consumer_reporting_agency', ConsumerReportingAgency) # need to do this when and attribute is an object
+    self.initializeAttribute('debts', DebtList)
+    self.initializeAttribute('disputed_items', DisputedItemList)
+    self.initializeAttribute('enclosures', DAList)
+  @property
+  def credit_report_complete(self):
+    self.consumer_reporting_agency
+    self.date
+    self.debts
+    self.disputed_items
+    self.enclosures
+    return True
+  def name_report(self):
+    self.name = str(self.consumer_reporting_agency.name) + ' ' + 'Credit Report'
+
+
+class CreditReportList(DAList):
+  """Represents a list of CreditReport objects."""
+  def init(self, *pargs, **kwargs):
+    super(CreditReportList, self).init(*pargs, **kwargs)
+    self.object_type = CreditReport
+    self.complete_attribute = 'credit_report_complete'
+
+class DisputedItem(DAObject):
+  """Represents reporting on a CreditReport object related to a 
+    single debt that a consumer is disputing."""
+  def init(self, *pargs, **kwargs):
+    super(DisputedItem, self).init(*pargs, **kwargs)
+  @property
+  def disputed_items_complete(self):
+    if hasattr(self, 'id_number'): # lets gathering continue despite there being no id number
+      pass
+    else:
+      pass
+    self.explanation
+    self.solution
+    return True
+ 
+
+class DisputedItemList(DAList):
+  """Represents a list of DisputedItem objects."""
+  def init(self, *pargs, **kwargs):
+    super(DisputedItemList, self).init(*pargs, **kwargs)
+    self.object_type = DisputedItem
+    self.complete_attribute = 'disputed_items_complete'
+
+class ConsumerReportingAgency(Person):
+  """Represents the consumer reporting agency who issued a particular consumer report."""
+  def init(self, *pargs, **kwargs):
+    super(ConsumerReportingAgency, self).init(*pargs, **kwargs)
+  @property
+  def consumer_reporting_agency_complete(self):
+      self.name
+      self.address
+      return True 
+
 
 
 
