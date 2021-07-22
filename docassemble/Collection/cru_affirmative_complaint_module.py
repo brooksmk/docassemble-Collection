@@ -1,9 +1,9 @@
 from docassemble.base.core import DAObject, DAList # import parent classes from .core
 from docassemble.base.util import Person, Address # import parent classes from .util
 
-__all__ = ['Collector','CollectorList', 'Debt', 'DebtList', 'Damages', 'DamagesList'] # list every class name here as a string element in a list, or else docassemble can't find it in the module.
+__all__ = ['Collector', 'CollectorList', 'Debt', 'DebtList', 'Damages', 'DamagesList', 'CreditReport', 'CreditReportList', 'DisputedItem', 'DisputedItemList'] # list every class name here as a string element in a list, or else docassemble can't find it in the module.
 
-class Collector (Person):
+class Collector(Person):
   """Represents an entity (individual or corporate) that is trying to collect a debt (in a colloquial sense) from a client. May or may not be an FDCPA debt collector or original creditor. """
   def init(self, *pargs, **kwargs):
     super(Collector, self).init(*pargs, **kwargs) # standard form of an .init() method for a docassemble object
@@ -21,7 +21,7 @@ class CollectorList(DAList):
     self.object_type = Collector # tells docassemble that this will be a list of Collector() objects.
     self.complete_attribute = 'collector_complete' # names the attribute that needs to return True for gathering to be complete. See Collector() above.
 
-class Debt (DAObject):
+class Debt(DAObject):
     """Represents a single account owed to a single entity by a client."""
     def init(self, *pargs, **kwargs):
         super(Debt, self).init(*pargs, **kwargs)
@@ -85,20 +85,20 @@ class CreditReport(DAObject):
   """Represents a single consumer report."""
   def init(self, *pargs, **kwargs):
     super(CreditReport, self).init(*pargs, **kwargs)
-    self.initializeAttribute('consumer_reporting_agency', ConsumerReportingAgency) # need to do this when and attribute is an object
+    self.initializeAttribute('address', Address) # need to do this when and attribute is an object
     self.initializeAttribute('debts', DebtList)
     self.initializeAttribute('disputed_items', DisputedItemList)
     self.initializeAttribute('enclosures', DAList)
+  def name_report(self):
+    self.name = str(self.consumer_reporting_agency.name) + ' ' + 'Credit Report'
   @property
   def credit_report_complete(self):
-    self.consumer_reporting_agency
+    self.address
     self.date
     self.debts
     self.disputed_items
     self.enclosures
     return True
-  def name_report(self):
-    self.name = str(self.consumer_reporting_agency.name) + ' ' + 'Credit Report'
 
 
 class CreditReportList(DAList):
@@ -123,7 +123,6 @@ class DisputedItem(DAObject):
     self.solution
     return True
  
-
 class DisputedItemList(DAList):
   """Represents a list of DisputedItem objects."""
   def init(self, *pargs, **kwargs):
@@ -131,15 +130,7 @@ class DisputedItemList(DAList):
     self.object_type = DisputedItem
     self.complete_attribute = 'disputed_items_complete'
 
-class ConsumerReportingAgency(Person):
-  """Represents the consumer reporting agency who issued a particular consumer report."""
-  def init(self, *pargs, **kwargs):
-    super(ConsumerReportingAgency, self).init(*pargs, **kwargs)
-  @property
-  def consumer_reporting_agency_complete(self):
-      self.name
-      self.address
-      return True 
+
 
 
 
