@@ -8,6 +8,7 @@ modules:
 include:
   - cru_affirmative_venue_complaint.yml
   - cru_discovery.yml
+  - cru_credit_report_dispute.yml
 
 ---
 metadata:
@@ -18,7 +19,7 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2020-03-19
+  revision_date: 2021-07-16
 ---
 objects:
   - client: Individual
@@ -36,15 +37,15 @@ code: |
   multi_user = True
   collectors.there_are_any = True
   debts.there_are_any = True
-  damages.there_are_any = True
+  # damages.there_are_any = True currently not using damages information so commenting out
   advocate_splash_screen
   advocate.name.first
   client.name.first
   debt.amount
   collectors.gather()
-  #populate_debt_infotmation
+  populate_collector_list
   name_debts
-  damages.gather()
+  # damages.gather() this information isn't being used right now.
   interview_umbrella_done
 ---
 question: |
@@ -207,6 +208,7 @@ field: interview_choice
 choices:
   - Affirmative Complaint (Venue Violation)
   - Discovery
+  - Credit Report Dispute
   - Other
 
 ---
@@ -217,6 +219,8 @@ code: |
     discovery_interview_done
   elif interview_choice == 'Other':
     placeholder_screen
+  elif interview_choice == 'Credit Report Dispute':
+    credit_report_dispute_interview_done
   interview_umbrella_done = True
   
 ---
@@ -233,13 +237,12 @@ subquestion: |
   Please provide your client's CURRENT address information.
 fields:
   - Street Address: client.address.address
-    default: 197 Friend Street
+  - Unit: client.address.unit
+    required: False
   - City: client.address.city
-    default: Boston
   - State: client.address.state
     default: MA
   - Zip: client.address.zip
-    default: '02114'
     datatype: number
 
 

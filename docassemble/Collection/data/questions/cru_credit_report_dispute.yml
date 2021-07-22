@@ -13,20 +13,13 @@ metadata:
   authors:
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2021-04-02
+  revision_date: 2021-07-22
 ---
 objects:
-  - client: Individual
-  - advocate: Individual
-  - collectors: CollectorList
-  - collector: Collector
-  - debts: DebtList
-  - debt: Debt
-  - report_list: CreditReportList
+  - report_list: CreditReportList.using(object_type=CreditReport)
   - report: CreditReport
-  - report.disputed_item_list: DisputedItemList
+  - report.disputed_item_list: DisputedItemList.using(object_type=DisputedItem)
   - disputed_item: DisputedItem
-  - report_list.consumer_reporting_agency: ConsumerReportingAgency
 
 ---
 comment: |
@@ -36,7 +29,9 @@ comment: |
 code: |
   multi_user = True
   report_list.there_are_any = True
-  report_list.disputed_item_list.there_are_any = True
+  report.disputed_item_list.there_are_any = True
+  if credit_report_dispute_done:
+    credit_report_dispute_interview_done = True
   # report_list.gather()
 
 ---
@@ -45,28 +40,44 @@ question: |
 subquestion: |
   Tell us about the credit report you want to dispute.
 fields:
-  - Credit Reporting Agency: report_list[i].consumer_reporting_agency
-  - Street Address: report_list[i].consumer_reporting_agency.address.address
-  - City: report_list[i].consumer_reporting_agency.address.city
-  - State: report_list[i].consumer_reporting_agency.address.state
-  - Zip: report_list[i].consumer_reporting_agency.address.zip
+  - Credit Reporting Agency: report_list[i].agency
+  - Street Address: report_list[i].address.address
+  - City: report_list[i].address.city
+  - State: report_list[i].address.state
+  - Zip: report_list[i].address.zip
     datatype: number
   - Report Date: report_list[i].date
+    datatype: date
+    
+---
+question: |
+  Other Credit Reports
+subquestion: |
+  Are there any other credit reports that you want to dispute?
+yesno: report_list.there_is_another
 
+---
+sets: report_list[i].disputed_item_list
+code: |
+  report_list[i].initializeAttribute("disputed_item_list", DisputedItemList)
+  report_list[0].disputed_item_list.there_are_any = True
 ---
 question: |
   Disputed Items
 subquestion: |
   Which debts on ${report_list[i]} are you disputing?
 fields:
-  no label: report_list[i].disputed_item_list
-  datatype: object_checkboxes
-  code: |
-    debts
-
+  - Disputed Debts: report_list[i].disputed_item_list[j].name
+    datatype: checkboxes
+    choices:
+      - ${ debt }
+---
+sets: report_list[i].disputed_item_list.there_is_another
+code: |
+  report_list[i].disputed_item_list.there_is_another = False
 ---
 question: |
-  ${report_list[i].disputed_item_list[j]}
+  ${report_list[i].disputed_item_list[j].name}
 subquestion: |
   Tell us about your dispute over ${report_list[i].disputed_item_list[j]} on ${report_list[i]}
 fields:
@@ -75,6 +86,20 @@ fields:
   - Explanation: report_list[i].disputed_item_list[j].explanation
   - Solution: report_list[i].disputed_item_list[j].solution
 
+---
+question: |
+  Mailing Method
+subquestion: |
+  How are you mailing your dispute?
+fields:
+  - "Mailing Method": mailing_method
+    choices:
+      - Regular First Class: First Class
+      - Certified: Certified
+  - "Article Number": article_number
+    show if:
+      variable: mailing_method
+      is: "Certified"
 ---
 question: |
   Client Information
@@ -89,7 +114,7 @@ question: |
   Enclosures
 subquestion: |
   Are you including any enclosures with your dispute of ${report_list[i]}
-yesno: enclosures.there_are_any
+yesno: report_list[i].enclosures.there_are_any
 
 ---
 question: |
@@ -99,9 +124,26 @@ subquestion: |
 fields:
   - Describe Enclosure: report_list[i].enclosures[j]
   
+---
+question: |
+  Other Enclosures
+subquestion: |
+  Are there any other enclosures besides these:
+    % for enclosure in report_list[i].enclosures:
+    * **${ enclosure }**
+    % endfor  
+yesno: report_list[i].enclosures.there_is_another 
+---
+question: |
+  Your Disputes
+subquestion: |
+  Here are your disputes
+  
+  ${ credit_report_dispute_template_variable }
+
+continue button field: credit_report_dispute_done
 
 ---
-mandatory: True
 attachment:
   - name: credit_report_dispute_template
     variable name: credit_report_dispute_template_variable
