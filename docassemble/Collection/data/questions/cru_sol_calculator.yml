@@ -1,0 +1,84 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+---
+include:
+  - cru_affirmative_venue_complaint.yml
+  - cru_discovery.yml
+  - cru_credit_report_dispute.yml
+
+---
+metadata:
+  title: |
+    Anti-Debt Collection Document Automation - Greater Boston Legal Services Consumer Rights Unit - Statute of Limitations Calculator
+  description: |
+    An interview for advocates calculate statues of limitations of debt collection-related claims in Massachusetts.
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2021-08-05
+---
+objects:
+  - client: Individual
+  - advocate: Individual
+  - collectors: CollectorList
+  - collector: Collector
+  - debt: Debt
+---
+comment: |
+  ## Mandatory block. Controls the order in which 
+  ## the interview asks questions.
+mandatory: True
+code: |
+  multi_user = True
+  collectors.there_are_any = True
+  debts.there_are_any = True
+  advocate_splash_screen_sol
+  debt.date_of_default
+  sol_done
+---
+question: |
+  Welcome! 
+field: advocate_splash_screen_sol
+subquestion: |
+  This is the GBLS Consumer Rights Unit statute of limitations calculator.
+under: |
+  Click "Continue" to keep going with the interview.
+  
+  To ask questions or report bugs, email Matt Brooks at mbrooks@gbls.org
+---
+---
+question: |
+  Tell us about the debt.
+subquestion: |
+  Here, you enter information about the one, specific debt you are trying to calculate the statute of limitations for
+fields:
+  - Date of Last Payment: debt.date_of_default
+    datatype: date
+  - Date of FDCPA/93A violation: debt.date_of_violation
+    datatype: date
+  - Is there a judgment?: debt.is_there_a_judgment
+    datatype: yesnoradio
+  - Date of judgment: debt.date_of_judgment
+    datatype: date
+    show if:
+      variable: debt.is_there_a_judgment
+      is: True
+---
+sets: sol_done
+question: |
+  Here are your statute of limitations calculations
+subquestion: |
+  * The FDCPA statute of limitations on the the debt runs on **${ debt.date_of_violation + date_interval(years=1) }. With COVID tolling, it runs on ${ debt.date_of_violation + date_interval(years=1, days=106)} **
+
+  * The 93A status of limitations on the debt runs on **${ debt.date_of_violation + date_interval(years=4) }. With COVID tolling, it runs on ${ debt.date_of_violation + date_interval(years=4, days=106)}**
+   % if debt.is_there_a_judgment == False:
+  * Your client can be legally sued on this debt until **${ debt.date_of_default + date_interval(years=6) }.With COVID tolling, they can be sued until ${ debt.date_of_violation + date_interval(years=6, days=106)}** 
+      % endif
+  % if debt.is_there_a_judgment == True:
+  * The judgment entered on ${ debt.date_of_judgment } will be presumed satisfied on **${ debt.date_of_judgment + date_interval(years=20) }. With COVID tolling, it will be presumed satisfied on ${ debt.date_of_violation + date_interval(years=20, days=106)}**
+    % endif
+exit: sol_done
