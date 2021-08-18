@@ -1,0 +1,595 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+  - .exemptOrNot
+---
+metadata:
+  title: |
+    Lawyer for the Day - Intake Form
+  description: |
+    An interview to fill out GBLS's lawyer for the day intake form.
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2021-08-18
+---
+objects:
+    - client: Individual
+    - jobs: IncomeList
+    - non_job_income: IncomeList
+    - car: DAObject
+    - bank_account: DAObject
+    - home: DAObject
+    - jewelry: DAObject
+    - other_valuable_things: DAObject
+    - assets_that_are_like_income: IncomeList
+    - debt: Debt
+    - opposing_counsel: DAObject
+    - calls: DAObject
+    - threats: DAObject
+    - settlement: DAObject
+    - notice: DAObject
+---
+mandatory: True
+comment: |
+	## Mandatory block that determines interview order.
+code: |
+  intro_screen_seen
+  client.name.first
+	client.address.address
+	client.phone_number
+	case_number
+  lawyer_name
+  opposing_counsel
+  debt.collector
+  asset_list_populated
+  assets_are_exempt
+  jobs.gather()
+  non_job_income.gather()
+  # jobs_and_fully_exempt
+  debt.date_of_last_payment
+  calls.are_there_calls
+  threats.are_there_threats
+  settlement.monthly
+  notice.ag
+  lfd_intake_attachment
+---
+question:
+	Welcome
+subquestion:
+    This is an interview that will help you fill out your client's lawyer for the day intake form.
+under: |
+    For a direct link to a blank version of the intake form [click here](https://gblsma.sharepoint.com/:w:/s/crustaff/EeL133xQdU9Pl7UpZSxJz6sBXPNr7nHwlH68Fa5ve-2qIw?e=Mf1N94)
+field: intro_screen_seen
+---
+question: |
+	What is your client's name?
+fields:
+	- First Name: client.name.first
+	- Last Name: client.name.last
+---
+question: |
+	What is your client's address?
+fields:
+	- Street Address: client.address.address
+  - Unit Address: client.address.unit
+    required: False
+	- City: client.address.city
+	  default: Boston
+	- State: client.address.state
+	  default: MA
+  - County: client.address.county
+	- Zip Code: client.address.zip
+---
+question: |
+	What is your client's contact information?
+fields:
+	- Phone Number: client.phone_number
+  - Are texts ok?: client.texts_ok
+    datatype: yesnoradio
+	- Email: client.email
+    required: False
+---
+code: |
+  if client.texts_ok:
+    texts_yes = 'x'
+    texts_no = ''
+  else:
+    texts_yes = ''
+    texts_no = 'x'
+---
+question: |
+  Tell us some additional information about your client.
+fields:
+  - Date of birth: client.dob
+    datatype: date
+  - Household size: client.household_size
+    datatype: number
+  - Number of dependents: client.dependents
+    datatype: number
+  - Client ethnicity: client.ethnicity
+
+---
+question: |
+  Tell us about your client's housing situation
+fields:
+  - Does your client rent or own: client.rent_or_own
+    datatype: radio
+    choices:
+      - Rents: True
+      - Owns: False
+  - What is your client's monthly housing payment: client.monthly_housing_payment
+    datatype: currency
+---
+code: |
+  if client.rent_or_own:
+    client_rents = 'x'
+    client_owns = ''
+  else:
+    client_rents = ''
+    client_owns = 'x'
+---
+question: |
+  Language Access
+fields:
+  - Does your client need an interpreter?: client.needs_interpreter
+    datatype: radio
+    choices:
+      - Yes: True
+      - No: False
+  - What language?: client.language
+    show if:
+      variable: client.needs_interpreter
+      is: True
+---
+code: |
+  if client.needs_interpreter:
+    yes_interpreter = 'x'
+    no_interpreter = ''
+  else:
+    yes_interpreter = ''
+    no_interpreter = 'x'
+---
+question: |
+  Benefits
+fields:
+  - Does your client get any of the following benefits: benefits
+    datatype: checkboxes
+    choices:
+      - Mass Health: gets_mass_health
+      - Disability (SSDI/EAEDC): gets_disability
+      - Cash Assistance: gets_cash_assistance
+      - SNAP/Foodstamps: gets_snap
+      - Supplemental Security Income (SSI): gets_ssi
+      - Emergency Assistance for the Eldery, Disabled,and Children (EAEDC): gets_eaedc
+      - Veterans Benefits: gets_veterans_benefits
+---
+code: |
+  if benefits['gets_mass_health']:
+    mass_health = 'x'
+  else:
+    mass_health = ''
+  if benefits['gets_disability']:
+    disability = 'x'
+  else:
+    disability = ''
+  if benefits['gets_cash_assistance']:
+    cash_assistance = 'x'
+  else:
+    cash_assistance = ''
+  if benefits['gets_snap']:
+    snap = 'x'
+  else:
+    snap = ''
+  if benefits['gets_ssi']:
+    social_security = 'x'
+  else:
+    social_security = ''
+  if benefits['gets_veterans_benefits']:
+    veteran_benefits = 'x'
+  else:
+    veteran_benefits = ''
+---
+question: |
+	What is your client's case number?
+fields:
+	- Case Number: case_number
+    required: False
+  - Court Name: court_name
+    required: False
+---
+question: |
+  Who is the lawyer handling your client's case?
+fields:
+  - Lawyer Name: lawyer_name
+    required: False
+---
+question: |
+  Tell us about the opposing counsel.
+fields:
+  - Plaintiff's Attorney (Coverage): opposing_counsel.name
+    required: False
+  - Plaintiff's Law Firm: opposing_counsel.firm
+    required: False
+---
+question: |
+  Tell us about the debt.
+fields:
+  - Plaintiff's Name: debt.collector
+  - Original Creditor: debt.original_creditor
+    required: False
+---
+question: |
+  Tell us some additional information about your debt with ${ debt.collector }
+fields:
+  - Amount plaintiff is seeking: debt.amount_sought
+    datatype: currency
+  - Amount client thinks they owe: debt.amount_thought
+    datatype: currency
+  - Date card opened: debt.date_card_opened
+    required: False
+    datatype: date
+  - Date of last payment: debt.date_of_last_payment
+    required: False
+    datatype: date
+  - Does client believe they owe the debt: debt.client_owes
+    datatype: yesnoradio
+  - Is the balance incorrect: debt.balance_incorrect
+    datatype: yesnoradio
+  - Did the client ever have the card?: debt.client_had_card
+    datatype: yesnoradio
+  - Did the client already pay or settle this account?: debt.already_paid
+    datatype: yesnoradio
+---
+question: |
+  Call information.
+subquestion: |
+  Tell us about any calls your client has recieved.
+fields:
+  - Has anyone called the client about this debt?: calls.are_there_calls
+    datatype: yesnoradio
+  - How many times per week: calls.times_per_week
+    show if:
+      variable: calls.are_there_calls
+      is: True
+  - How long has the client had their number: calls.number_how_long
+  - Has anyone called someone the client knows about the debt?: calls.third_party_called
+    datatype: yesnoradio
+  - How many times per month?: calls.times_per_month
+    show if:
+      variable: calls.third_party_called
+      is: True
+---
+code: |
+  if calls.are_there_calls:
+    yes_calls = 'x'
+    no_calls = ''
+  else:
+    yes_calls = ''
+    no_calls = 'x'
+    
+  if calls.third_party_called:
+    third_party_calls_yes= 'x'
+    third_party_calls_no = ''
+  else:
+    third_party_calls_yes = ''
+    third_party_calls_no ='x'
+---
+question: |
+  Arrest/Repo information
+subquestion: |
+  Tell us about any threats of arrest or reposession your client has received?
+fields:
+  - Has anyone threatened to arrest your client or take their property away?: threats.are_there_threats
+    datatype: yesnoradio
+  - Explain here: threats.explanations
+    datatype: area
+    required: False
+    show if:
+      variable: threats.are_there_threats
+      is: True
+---
+code: |
+  if threats.are_there_threats:
+    threats_yes = 'x'
+    threats_no = ''
+  else:
+    threats_yes = ''
+    threats_no = 'x'
+---
+question: |
+  Did your client get any of the following notices?
+fields:
+  - Statement of Small Claim: notice.sosc
+    datatype: yesnoradio
+  - AG Notice: notice.ag
+    datatype: yesnoradio
+---
+question: |
+  Settlement information
+fields:
+  - Affordable Monthly Payment: settlement.monthly
+    datatype: currency
+  - Affordable Lump Sum: settlement.lump_sum
+    datatype: currency
+  - Proposed Payment Start Date: settlement.payment_start_date
+    datatype: date
+---
+question: |
+  Does your client have any of the following things?
+fields:
+  - Tell me about the things you own: has_assets
+    datatype: checkboxes
+    choices:
+      - Car: owns_car
+      - House: owns_house
+      - Bank Account: has_bank_account
+      - Jewelry: owns_jewelry
+      - Something Else Valuable: owns_something_else_valuable
+  - Are you disabled or over 60?: car.disabled_or_over_sixty
+    show if: has_assets["owns_car"]
+    datatype: radio
+    choices:
+      - Yes: True
+      - No: False
+  - Have you filed a declaration of homestead?: home.homestead_filed
+    show if: has_assets["owns_house"]
+    datatype: radio
+    choices:
+      - Yes: True
+      - No: False
+      - I am not sure: False 
+---
+mandatory: True
+code: |
+  assets = list()
+  if has_assets["owns_car"]:
+    assets.append(car)
+    car.asset_type = "car"
+    car.name = "Car"
+    car.value = car_value
+    car.amount_not_exempt = 123456789
+  if has_assets["owns_house"]:
+    assets.append(home)
+    home.asset_type = "home"
+    home.name = "Home"
+    home.value = home_value
+    home.mortgage = home_mortgage
+    home.amount_not_exempt = 123456789
+  if has_assets["has_bank_account"]:
+    assets.append(bank_account)
+    bank_account.asset_type = "bank_account"
+    bank_account.name = "Bank Account"
+    bank_account.value = bank_account_value
+    bank_account.amount_not_exempt = 123456789
+  if has_assets["owns_jewelry"]:
+    assets.append(jewelry)
+    jewelry.asset_type = "jewelry"
+    jewelry.name = "Jewelry"
+    jewelry.value = jewelry_value
+    jewelry.amount_not_exempt = 123456789
+  if has_assets["owns_something_else_valuable"]:
+    assets.append(other_valuable_things)
+    other_valuable_things.asset_type = "other_valuable_things"
+    other_valuable_things.name = "Other"
+    other_valuable_things.value = other_valuable_things_value
+    other_valuable_things.amount_not_exempt = 123456789
+  asset_list_populated = True
+---
+sets:
+  - bank_account_value
+question: |
+  Tell me about your assets.
+fields: 
+  - Car Value: car_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_car"]
+  - Amount in Bank Account: bank_account_value
+    datatype: currency
+    show if:
+      code: |
+        has_assets["has_bank_account"]
+  - Home Value: home_value
+    datatype: currency
+    show if:
+      code: |
+        has_assets["owns_house"]
+  - Amount you owe on your mortgage (put 0 if unsure): home_mortgage
+    datatype: currency
+    show if:
+       code: |
+        has_assets["owns_house"]
+  - Jewelry Value: jewelry_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_jewelry"]
+  - Value of Other Valuable Things: other_valuable_things_value
+    datatype: currency
+    show if: 
+      code: |
+        has_assets["owns_something_else_valuable"]
+---
+question: |
+    Do you have any income that is NOT from a job?
+subquestion: |
+    For example: social security, public benefits, retirement, or rental income
+yesno: non_job_income.there_are_any
+--- 
+question: |
+    Do you have any income from a job?
+yesno: jobs.there_are_any
+---
+question: |
+    What is your ${ ordinal(i) } job?
+fields:
+    - Job: jobs[i].name
+---
+question: |
+    What is your ${ ordinal(i) } source of income that is not from a job?
+fields: 
+  - Non Job Income Source Name: non_job_income[i].name
+    choices:
+      - Social Security
+      - Public Assistance (Food Stamps, Cash Assistance)
+      - EAEDC
+      - Food Stamps
+      - Pension/Annuity/Retirement
+      - Unemployment
+      - Veterans Benefits
+      - Workers Compensation
+      - Fraternal Society Benefits
+      - Child Support or Alimony
+      - Rental Income/Investments
+      - Other
+  - Other: non_job_income[i].name
+    show if:
+      variable: non_job_income[i].name
+      is: Other
+---
+question: |
+  Tell me about your income from ${ jobs[i].name }
+fields:
+  - Do you get paid hourly?: jobs[i].is_hourly
+    datatype: yesnoradio
+  - Hourly rate: jobs[i].hourly_rate
+    datatype: currency
+    show if: jobs[i].is_hourly
+  - Average hours worked per period: jobs[i].hours_per_period
+    datatype: integer
+    show if: jobs[i].is_hourly
+  - Amount earned: jobs[i].value
+    datatype: currency
+    show if:
+      variable: jobs[i].is_hourly
+      is: False
+  - '': jobs[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+  Tell me about your income from ${ non_job_income[i].name }
+fields:
+  - Amount earned: non_job_income[i].value
+    datatype: currency
+  - '': non_job_income[i].period
+    datatype: number
+    code: |
+      period_list() + [[4,"Per quarter"]]
+---
+question: |
+    So far, the jobs you have put in include:
+    
+    % for source in jobs:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other jobs?
+yesno: jobs.there_is_another
+---
+question: |
+    So far, the non-job sources of income you have put in include:
+    
+    % for source in non_job_income:
+    * ${ source.name }
+    % endfor
+    
+    Do you have any other non-job sources of income?
+yesno: non_job_income.there_is_another
+---
+question: Here is your document.
+event: lfd_intake_attachment
+attachment:
+  - name: lfd_intake_template
+    filename: lfd_intake_template
+    pdf template file: lfd_intake_template.pdf
+    fields:
+      - "lawyer_name": ${showifdef('lawyer_name')}
+      - "Text1": ${showifdef('court_name')}
+      - "case_number": ${showifdef('case_number')}
+      - "client.name.last": ${client.name.last}
+      - "client.name.first": ${client.name.first}
+      - "debt.collector": ${debt.collector}
+      - "client.phone_number": ${client.phone_number}
+      - "opposing_counsel.name": ${showifdef('opposing_counsel.name')}
+      - "client.email": ${showifdef('client.email')}
+      - "client.dob": ${client.dob}
+      - "client.household_size": ${client.household_size}
+      - "client.dependents": ${client.dependents}
+      - "opposing_counsel.firm": ${showifdef('opposing_counsel.firm')}
+      - "debt.original_creditor": ${showifdef('debt.original_creditor')}
+      - "client.texts_ok": ${client.texts_ok} 
+      - "Text18": ${texts_yes}
+      - "texts_no": ${texts_no}
+      - "client.address.unit": ${showifdef('client.address.unit')}
+      - "client.address.state": ${client.address.state}
+      - "client.address.address": ${client.address.address}
+      - "client.address.city": ${client.address.city}
+      - "client.address.zip": ${client.address.zip}
+      - "client.rent_or_own": ${client.rent_or_own}
+      - "Text22": ${client_rents}
+      - "client_owns": ${client_owns}
+      - "client.monthly_housing_payment": ${client.monthly_housing_payment}
+      - "client.ethnicity": ${client.ethnicity}
+      - "yes_interpreter": ${yes_interpreter}
+      - "no_interpreter": ${no_interpreter}
+      - "client.ethnicity": ${client.ethnicity}
+      - "jobs_total": ${jobs_total}
+      - "bank_account_value": ${showifdef('bank_account_value')}
+      - "benefits_total": ${benefits_total}
+      - "home_value": ${showifdef('home_value')}
+      - "other_income_total": ${showifdef('other_income_total')}
+      - "car_value": ${showifdef('car_value')}
+      - "other_valueable_things_value": ${showifdef('other_valueable_things_value')}
+      - "mass_health": ${mass_health}
+      - "disability": ${disability}
+      - "veteran_benefits": ${veteran_benefits}
+      - "snap": ${snap}
+      - "cash_assistance": ${cash_assistance}
+      - "social_security": ${social_security}
+      - "debt.amount_thought": ${debt.amount_thought}
+      - "no_calls": ${no_calls}
+      - "yes_calls": ${yes_calls}
+      - "debt.date_card_opened": ${showifdef('debt.date_card_opened')}
+      - "calls.times_per_week": ${showifdef('calls.times_per_week')}
+      - "debt.date_of_last_payment": ${showifdef('debt.date_of_last_payment')}
+      - "threats_yes": ${threats_yes}
+      - "threats_no": ${threats_no}
+      - "calls.number_how_long": ${calls.number_how_long}
+      - "debt.balance_incorrect": ${debt.balance_incorrect}
+      - "third_party_calls_yes": ${third_party_calls_yes}
+      - "third_party_calls_no": ${third_party_calls_no}
+      - "debt.client_had_card": ${debt.client_had_card}
+      - "debt.already_paid": ${debt.already_paid}
+      - "settlement.payment_start_date": ${settlement.payment_start_date}
+      - "settlement.monthly": ${settlement.monthly}
+      - "settlement.lump_sum": ${settlement.lump_sum}
+      - "notice.ag": ${notice.ag}
+      - "notice.sosc": ${notice.sosc}
+---
+need:
+  - asset_list_populated
+sets: assets_are_exempt
+code: |
+  assets_exempted = exempt_assets(assets)
+  assets_are_exempt = True
+
+---
+#sets: jobs_and_fully_exempt
+#code: |
+  # jobs_and_fully_exempt = jobs_and_fully_exempt_combined(jobs, non_job_income)
+---
+code: |
+  if jobs.there_are_any:
+    total = float(0)
+    jobs_total = [total + float(item.amount(period_to_use=52)) for item in jobs]
+  else:
+    jobs_total = ''
+---
+code: |
+  benefits_total = amount_fully_exempt(non_job_income)
