@@ -1,5 +1,14 @@
-## revision_date: 2019-02-17 (definitive version is saved in the playground of interviews-dev.gbls.org)
-
+def amount_fully_exempt(non_job_income):
+  fully_exempt = list()
+  total = float(0)
+  for item in non_job_income:
+    if item.name in ['Workers Compensation', 'Unemployment', 'Social Security', 'Public Assistance (Food Stamps, Cash Assistance)', 'EAEDC', 'Food Stamps', 'Veterans Benefits', 'Pension/Annuity/Retirement']:
+            fully_exempt.append(item)
+  for item in fully_exempt:
+      total = total + float(item.amount(period_to_use=52))
+  return total
+        
+        
 def jobs_and_fully_exempt_combined(jobs, non_job_income):
     jobs_and_fully_exempt = list()
     for item in non_job_income:
