@@ -9,6 +9,8 @@ modules:
 metadata:
   title: |
     Lawyer for the Day - Intake Form
+  tags:
+    - everyone
   description: |
     An interview to fill out GBLS's lawyer for the day intake form.
      - name: Matt Brooks
@@ -31,6 +33,11 @@ objects:
     - threats: DAObject
     - settlement: DAObject
     - notice: DAObject
+    - kristen: Individual.using(name='Kristen Bor-Zale', email='kborzale@gbls.org')
+    - matt: Individual.using(name='Matt Brooks', email='mbrooks@gbls.org')
+    - nadine: Individual.using(name='Nadine Cohen', email='ncohen@gbls.org')
+    - todd: Individual.using(name='Todd Kaplan', email='tkaplan@gbls.org')
+    - alexa: Individual.using(name='Alexa Rosenbloom', email='arosenbloom@gbls.org')
 ---
 mandatory: True
 comment: |
@@ -40,22 +47,30 @@ code: |
   client.name.first
 	client.address.address
 	client.phone_number
+  client.dob
 	case_number
   lawyer_name
   opposing_counsel
   debt.collector
+  client_owns
   asset_list_populated
   assets_are_exempt
   jobs.gather()
   non_job_income.gather()
   # jobs_and_fully_exempt
+  benefits
   debt.date_of_last_payment
   calls.are_there_calls
   threats.are_there_threats
-  settlement.monthly
+  settlement.interested
   notice.ag
+  lfd_advocates
+  lfd_intake_email
   lfd_intake_attachment
+
+
 ---
+id: lfd_intake welcome
 question:
 	Welcome
 subquestion:
@@ -64,6 +79,7 @@ under: |
     For a direct link to a blank version of the intake form [click here](https://gblsma.sharepoint.com/:w:/s/crustaff/EeL133xQdU9Pl7UpZSxJz6sBXPNr7nHwlH68Fa5ve-2qIw?e=Mf1N94)
 field: intro_screen_seen
 ---
+id: lfd_intake client name
 question: |
 	What is your client's name?
 fields:
@@ -228,6 +244,7 @@ fields:
     datatype: currency
   - Amount client thinks they owe: debt.amount_thought
     datatype: currency
+    required: False
   - Date card opened: debt.date_card_opened
     required: False
     datatype: date
@@ -235,13 +252,30 @@ fields:
     required: False
     datatype: date
   - Does client believe they owe the debt: debt.client_owes
-    datatype: yesnoradio
+    datatype: yesnomaybe
   - Is the balance incorrect: debt.balance_incorrect
     datatype: yesnoradio
+    required: False
   - Did the client ever have the card?: debt.client_had_card
     datatype: yesnoradio
+    required: False
   - Did the client already pay or settle this account?: debt.already_paid
     datatype: yesnoradio
+    required: False
+---
+code: |
+  if debt.client_owes:
+    client_owes_yes = 'x'
+    client_owes_no = ''
+    client_owes_maybe = ''
+  if not debt.client_owes:
+    client_owes_yes = ''
+    client_owes_no = 'x'
+    client_owes_maybe = ''
+  if debt.client_owes == None:
+    client_owes_yes = ''
+    client_owes_no = ''
+    client_owes_maybe = 'x'
 ---
 question: |
   Call information.
@@ -310,12 +344,23 @@ fields:
 question: |
   Settlement information
 fields:
+  - Is client interested in settlement?: settlement.interested
+    datatype: yesnoradio
   - Affordable Monthly Payment: settlement.monthly
     datatype: currency
+    show if:
+      variable: settlement.interested
+      is: True
   - Affordable Lump Sum: settlement.lump_sum
     datatype: currency
+    show if:
+      variable: settlement.interested
+      is: True
   - Proposed Payment Start Date: settlement.payment_start_date
     datatype: date
+    show if:
+      variable: settlement.interested
+      is: True
 ---
 question: |
   Does your client have any of the following things?
@@ -502,12 +547,17 @@ question: |
     Do you have any other non-job sources of income?
 yesno: non_job_income.there_is_another
 ---
+id: lfd_intake final screen
 question: Here is your document.
 event: lfd_intake_attachment
+subquestion: |
+  ${ lfd_intake_variable }
+---
 attachment:
   - name: lfd_intake_template
-    filename: lfd_intake_template
+    filename: ${lfd_subject}
     pdf template file: lfd_intake_template.pdf
+    variable name: lfd_intake_variable
     fields:
       - "lawyer_name": ${showifdef('lawyer_name')}
       - "Text1": ${showifdef('court_name')}
@@ -566,11 +616,38 @@ attachment:
       - "third_party_calls_no": ${third_party_calls_no}
       - "debt.client_had_card": ${debt.client_had_card}
       - "debt.already_paid": ${debt.already_paid}
-      - "settlement.payment_start_date": ${settlement.payment_start_date}
-      - "settlement.monthly": ${settlement.monthly}
-      - "settlement.lump_sum": ${settlement.lump_sum}
+      - "client_owes_yes": ${client_owes_yes}
+      - "client_owes_no": ${client_owes_no}
+      - "client_owes_maybe": ${client_owes_maybe}
+      - "settlement.payment_start_date": ${showifdef('settlement.payment_start_date')}
+      - "settlement.monthly": ${showifdef('settlement.monthly')}
+      - "settlement.lump_sum": ${showifdef('settlement.lump_sum')}
       - "notice.ag": ${notice.ag}
       - "notice.sosc": ${notice.sosc}
+---
+question: |
+  Emailing Intake
+subquestion: |
+  Who do you want to send this intake to?
+fields: 
+  no label: lfd_advocates
+  datatype: object_checkboxes
+  choices:
+    - kristen
+    - matt
+    - nadine
+    - todd
+    - alexa
+---
+code: |
+  lfd_subject = 'LFD Intake for ' + client.name.first + ' ' + client.name.last
+---
+id: lfd intake email code
+code: |
+  automate_lfd_subject = '[LFD]' + ' ' + lfd_subject
+  send_email(to='consumer_intake@gbls.org', reply_to='mbrooks@gbls.org', cc=lfd_advocates, body='see attached for an lfd intake', subject=lfd_subject, attachments=lfd_intake_variable, dry_run=False)
+  send_email(to='mbrooks@gbls.org', subject=automate_lfd_subject, attachments=lfd_intake_variable, dry_run=False)
+  lfd_intake_email = True
 ---
 need:
   - asset_list_populated
