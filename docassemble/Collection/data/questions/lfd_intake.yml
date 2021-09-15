@@ -217,7 +217,7 @@ fields:
     required: False
 ---
 question: |
-  Who is the lawyer handling your client's case?
+  Who is the GBLS lawyer handling your client's case?
 fields:
   - Lawyer Name: lawyer_name
     required: False
@@ -238,7 +238,7 @@ fields:
     required: False
 ---
 question: |
-  Tell us some additional information about your debt with ${ debt.collector }
+  Tell us some additional information about your client's debt with ${ debt.collector }
 fields:
   - Amount plaintiff is seeking: debt.amount_sought
     datatype: currency
@@ -314,7 +314,7 @@ code: |
 question: |
   Arrest/Repo information
 subquestion: |
-  Tell us about any threats of arrest or reposession your client has received?
+  Tell us about any threats of arrest or reposession your client has received.
 fields:
   - Has anyone threatened to arrest your client or take their property away?: threats.are_there_threats
     datatype: yesnoradio
@@ -426,7 +426,7 @@ code: |
 sets:
   - bank_account_value
 question: |
-  Tell me about your assets.
+  Tell me about your client's assets.
 fields: 
   - Car Value: car_value
     datatype: currency
@@ -460,22 +460,22 @@ fields:
         has_assets["owns_something_else_valuable"]
 ---
 question: |
-    Do you have any income that is NOT from a job?
+    Does your client have any income that is NOT from a job?
 subquestion: |
     For example: social security, public benefits, retirement, or rental income
 yesno: non_job_income.there_are_any
 --- 
 question: |
-    Do you have any income from a job?
+    Does your client have any income from a job?
 yesno: jobs.there_are_any
 ---
 question: |
-    What is your ${ ordinal(i) } job?
+    What is your client's ${ ordinal(i) } job?
 fields:
     - Job: jobs[i].name
 ---
 question: |
-    What is your ${ ordinal(i) } source of income that is not from a job?
+    What is your client's ${ ordinal(i) } source of income that is not from a job?
 fields: 
   - Non Job Income Source Name: non_job_income[i].name
     choices:
@@ -497,7 +497,7 @@ fields:
       is: Other
 ---
 question: |
-  Tell me about your income from ${ jobs[i].name }
+  Tell me about your client's income from ${ jobs[i].name }
 fields:
   - Do you get paid hourly?: jobs[i].is_hourly
     datatype: yesnoradio
@@ -518,7 +518,7 @@ fields:
       period_list() + [[4,"Per quarter"]]
 ---
 question: |
-  Tell me about your income from ${ non_job_income[i].name }
+  Tell me about your client's income from ${ non_job_income[i].name }
 fields:
   - Amount earned: non_job_income[i].value
     datatype: currency
@@ -556,16 +556,15 @@ subquestion: |
   ${jobs.table}
   ${non_job_income.table}
   
-   Based on your income, a debt collector could make you pay **${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}** per week.
-   
-   Most debt collectors can only **force** you to pay this amount if they sue you and win.
+   Based on your client's income, a debt collector could make them pay **${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}** per week.
+  
    
    
    % if jobs_and_fully_exempt:
    
    % if jobs_and_fully_exempt[i].name == 'Pension/Annuity/Retirement':
    You have listed Pension/Annuity/Retirement as a source of income. This income
-   is probably completely exempt, but it may not be. Consult an attorney to be sure.
+   is probably completely exempt, but it may not be.
    
    
    % endif 
@@ -578,21 +577,21 @@ subquestion: |
    % for item in assets_exempted:
      % if (item.amount_not_exempt > 0):
      **${currency(item.amount_not_exempt)}** of your **${item.name}** is **not protected**. 
-     If a debt collector sues you and wins, 
-     they could ask you to sell/empty your ${item.name} 
+     If a debt collector sues your client and wins, 
+     they could ask them to sell/empty your ${item.name} 
      and give them ${currency(item.amount_not_exempt)}.
        
      % endif
    % endfor
-   You may be able to exempt up to $6,000 of additional property. A lawyer could let you know more.
+   Your client may be able to exempt up to $6,000 of additional property.
      
    % if not has_assets["owns_house"]:
 
    % elif (has_assets["owns_house"] and (not home.homestead_filed)):
-   You may be able to protect more of your home equity if you file a declaration of homestead.
+   Your client may be able to protect more of their home equity if they file a declaration of homestead.
    Go here for more information: [Massachusetts Law About Homestead](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
    % elif (has_assets["owns_house"] and home.homestead_filed):
-   Even more of your home equity may be protected if you are over sixty two or disabled.
+   Even more of their home equity may be protected if they are over sixty two or disabled.
    Go here for more information: [Massachusetts Homestead Law](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
    % endif
 ---
