@@ -552,6 +552,49 @@ question: Here is your document.
 event: lfd_intake_attachment
 subquestion: |
   ${ lfd_intake_variable }
+
+  ${jobs.table}
+  ${non_job_income.table}
+  
+   Based on your income, a debt collector could make you pay **${ currency(amount_not_exempt(jobs_and_fully_exempt) + fully_non_exempt(non_job_income))}** per week.
+   
+   Most debt collectors can only **force** you to pay this amount if they sue you and win.
+   
+   
+   % if jobs_and_fully_exempt:
+   
+   % if jobs_and_fully_exempt[i].name == 'Pension/Annuity/Retirement':
+   You have listed Pension/Annuity/Retirement as a source of income. This income
+   is probably completely exempt, but it may not be. Consult an attorney to be sure.
+   
+   
+   % endif 
+   
+   
+   % endif
+   
+   ${assets_table}
+   
+   % for item in assets_exempted:
+     % if (item.amount_not_exempt > 0):
+     **${currency(item.amount_not_exempt)}** of your **${item.name}** is **not protected**. 
+     If a debt collector sues you and wins, 
+     they could ask you to sell/empty your ${item.name} 
+     and give them ${currency(item.amount_not_exempt)}.
+       
+     % endif
+   % endfor
+   You may be able to exempt up to $6,000 of additional property. A lawyer could let you know more.
+     
+   % if not has_assets["owns_house"]:
+
+   % elif (has_assets["owns_house"] and (not home.homestead_filed)):
+   You may be able to protect more of your home equity if you file a declaration of homestead.
+   Go here for more information: [Massachusetts Law About Homestead](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
+   % elif (has_assets["owns_house"] and home.homestead_filed):
+   Even more of your home equity may be protected if you are over sixty two or disabled.
+   Go here for more information: [Massachusetts Homestead Law](https://www.mass.gov/info-details/massachusetts-law-about-homestead)
+   % endif
 ---
 attachment:
   - name: lfd_intake_template
@@ -625,6 +668,28 @@ attachment:
       - "notice.ag": ${notice.ag}
       - "notice.sosc": ${notice.sosc}
 ---
+table: non_job_income.table
+rows: non_job_income
+columns:
+  - Non Job Income Source: row_item.name
+  - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+show if empty: False
+---
+table: jobs.table
+rows: jobs
+columns:
+  - Job Income Source: row_item.name
+  - Income Amount Per Week: currency(row_item.amount(period_to_use=52))
+show if empty: False
+---
+table: assets_table
+rows: assets_exempted
+columns:
+  - Thing You Own: row_item.name
+  - Amount Not Protected: currency(row_item.amount_not_exempt)
+show if empty: False
+
+---
 question: |
   Emailing Intake
 subquestion: |
@@ -657,9 +722,9 @@ code: |
   assets_are_exempt = True
 
 ---
-#sets: jobs_and_fully_exempt
-#code: |
-  # jobs_and_fully_exempt = jobs_and_fully_exempt_combined(jobs, non_job_income)
+sets: jobs_and_fully_exempt
+code: |
+  jobs_and_fully_exempt = jobs_and_fully_exempt_combined(jobs, non_job_income)
 ---
 code: |
   if jobs.there_are_any:
