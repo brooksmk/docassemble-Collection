@@ -121,6 +121,7 @@ question: |
 fields:
   - Date of birth: client.dob
     datatype: date
+    date format: short
   - Household size: client.household_size
     datatype: number
   - Number of dependents: client.dependents
