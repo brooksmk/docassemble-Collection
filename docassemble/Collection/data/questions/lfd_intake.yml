@@ -15,7 +15,7 @@ metadata:
     An interview to fill out GBLS's lawyer for the day intake form.
      - name: Matt Brooks
        organization: Greater Boston Legal Services
-  revision_date: 2021-08-18
+  revision_date: 2022-02-23
 ---
 objects:
     - client: Individual
@@ -59,7 +59,7 @@ code: |
   non_job_income.gather()
   # jobs_and_fully_exempt
   benefits
-  debt.date_of_last_payment
+  debt.date_of_last_payment_formatted
   calls.are_there_calls
   threats.are_there_threats
   settlement.interested
@@ -67,7 +67,6 @@ code: |
   lfd_advocates
   lfd_intake_email
   lfd_intake_attachment
-
 
 ---
 id: lfd_intake welcome
@@ -121,12 +120,14 @@ question: |
 fields:
   - Date of birth: client.dob
     datatype: date
-    date format: short
   - Household size: client.household_size
     datatype: number
   - Number of dependents: client.dependents
     datatype: number
   - Client ethnicity: client.ethnicity
+---
+code: |
+  client.dob_formatted = format_date(client.dob, format='short')
 
 ---
 question: |
@@ -265,6 +266,10 @@ fields:
     required: False
 ---
 code: |
+  debt.date_of_last_payment_formatted = format_date(debt.date_of_last_payment, format='short')
+  debt.date_card_opened_formatted = format_date(debt.date_card_opened, format='short')
+---
+code: |
   if debt.client_owes:
     client_owes_yes = 'x'
     client_owes_no = ''
@@ -362,6 +367,9 @@ fields:
     show if:
       variable: settlement.interested
       is: True
+---
+code: |
+  settlement.payment_start_date_formatted = format_date(settlement.payment_start_date, format='short')
 ---
 question: |
   Does your client have any of the following things?
@@ -611,7 +619,7 @@ attachment:
       - "client.phone_number": ${client.phone_number}
       - "opposing_counsel.name": ${showifdef('opposing_counsel.name')}
       - "client.email": ${showifdef('client.email')}
-      - "client.dob": ${client.dob}
+      - "client.dob": ${client.dob_formatted}
       - "client.household_size": ${client.household_size}
       - "client.dependents": ${client.dependents}
       - "opposing_counsel.firm": ${showifdef('opposing_counsel.firm')}
@@ -648,9 +656,9 @@ attachment:
       - "debt.amount_thought": ${debt.amount_thought}
       - "no_calls": ${no_calls}
       - "yes_calls": ${yes_calls}
-      - "debt.date_card_opened": ${showifdef('debt.date_card_opened')}
+      - "debt.date_card_opened_formatted": ${showifdef('debt.date_card_opened')}
       - "calls.times_per_week": ${showifdef('calls.times_per_week')}
-      - "debt.date_of_last_payment": ${showifdef('debt.date_of_last_payment')}
+      - "debt.date_of_last_payment_formatted": ${showifdef('debt.date_of_last_payment')}
       - "threats_yes": ${threats_yes}
       - "threats_no": ${threats_no}
       - "calls.number_how_long": ${calls.number_how_long}
@@ -662,7 +670,7 @@ attachment:
       - "client_owes_yes": ${client_owes_yes}
       - "client_owes_no": ${client_owes_no}
       - "client_owes_maybe": ${client_owes_maybe}
-      - "settlement.payment_start_date": ${showifdef('settlement.payment_start_date')}
+      - "settlement.payment_start_date_formatted": ${showifdef('settlement.payment_start_date_formatted')}
       - "settlement.monthly": ${showifdef('settlement.monthly')}
       - "settlement.lump_sum": ${showifdef('settlement.lump_sum')}
       - "notice.ag": ${notice.ag}
