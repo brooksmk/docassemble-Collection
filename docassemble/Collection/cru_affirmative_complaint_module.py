@@ -136,6 +136,50 @@ class DisputedItemList(DAList):
     super(DisputedItemList, self).init(*pargs, **kwargs)
     self.object_type = DisputedItem
     self.complete_attribute = 'disputed_items_complete'
+   
+def cra_airtable_function():
+
+    import itertools
+    import requests
+    import airtable
+
+    agencies = dict() # name of the agency
+    street_addresses = dict()
+    cities = dict()
+    states = dict()
+    zips = dict()
+
+    airtable = airtable.Airtable('app6jzEHzK1Xpz0xC', 'key6QH3se2Itq6TJl') # gets the contents of an airtable we made with information on all the tenant screening orgs identified by the CFPB. This is currently the test environment api key.
+    tenant_screeners = airtable.get(table_name='Tenant_Screening_Companies', fields=["Agency", "Street Address", "City", "State", "Zip" ]) # dumps the airtable into a variable, which is a monster of a data structure. It's a nested dictionary full of tuples.
+
+
+    length = len(tenant_screeners['records']) # this corresponds to the number of rows in the airtable, so we can know how many times the while loop below has to run
+    index = 0 # sets the counter of the while loop at 0.
+
+
+    while index < length: # populates the empty dicts() created above.
+        agencies[index] = tenant_screeners['records'][index]['fields']['Agency']
+        street_addresses[index] = tenant_screeners['records'][index]['fields']['Street Address']
+        cities[index] = tenant_screeners['records'][index]['fields']['City']
+        states[index] = tenant_screeners['records'][index]['fields']['State']
+        zips[index] = tenant_screeners['records'][index]['fields']['Zip']
+        index = index +  1
+
+    ''' the output of the while loop above is a series of dictionaries where the keys are equal to the index and the values 
+    are the actual information we want, so below we strip out the keys and just keep the values '''
+
+    agencies = agencies.values()
+    street_addresses = street_addresses.values()
+    cities = cities.values()
+    states = states.values()
+    zips = zips.values()
+
+    ''' we then use the zip function to combine our separate dictionaries back into one data structure, but this time one we know how to manipulate '''
+
+    all_results = zip(agencies, street_addresses, cities, states, zips) # this is what the function should return
+
+    return all_results  
+
 
 
 
