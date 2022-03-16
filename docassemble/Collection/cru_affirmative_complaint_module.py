@@ -1,7 +1,7 @@
 from docassemble.base.core import DAObject, DAList # import parent classes from .core
 from docassemble.base.util import Person, Address # import parent classes from .util
 
-__all__ = ['Collector', 'CollectorList', 'Debt', 'DebtList', 'Damages', 'DamagesList', 'CreditReport', 'CreditReportList', 'DisputedItem', 'DisputedItemList'] # list every class name here as a string element in a list, or else docassemble can't find it in the module.
+__all__ = ['Collector', 'CollectorList', 'Debt', 'DebtList', 'Damages', 'DamagesList', 'CreditReport', 'SimpleCreditReport', 'CreditReportList', 'DisputedItem', 'DisputedItemList'] # list every class name here as a string element in a list, or else docassemble can't find it in the module.
 
 class Collector(Person):
   """Represents an entity (individual or corporate) that is trying to collect a debt (in a colloquial sense) from a client. May or may not be an FDCPA debt collector or original creditor. """
@@ -100,7 +100,14 @@ class CreditReport(DAObject):
     self.enclosures
     return True
 
-
+class SimpleCreditReport(): # simple credit report class with no docassemble .gather() functionality
+    def __init__(self, name, street_address, city, state, zip):
+        self.name = name
+        self.street_address = street_address
+        self.city = city
+        self.state = state
+        self.zip = zip
+        
 class CreditReportList(DAList):
   """Represents a list of CreditReport objects."""
   def init(self, *pargs, **kwargs):
