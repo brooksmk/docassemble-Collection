@@ -1,0 +1,135 @@
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.legal
+  - docassemble.income.income
+  - .cru_affirmative_complaint_module
+---
+metadata:
+  title: |
+   Tenant Screening Consumer Report Request - Greater Boston Legal Services Consumer Rights Unit
+  description: |
+    An interview for client to automate request for consumer reports from multiple tenant screening companies, as identified by the CFPB. 
+  authors:
+     - name: Matt Brooks
+       organization: Greater Boston Legal Services
+  revision_date: 2022-03-16
+---
+objects:
+  - client: Person
+  - client.Address: Address
+  - client.name: Name
+
+---
+comment: |
+  ## Controls the order in which 
+  ## the interview asks questions. Doesn't need to be mandatory because 
+  ## of the umbrella interview.
+code: |
+  multi_user = True
+  report_list.there_are_any = True
+  make_cra_list_object
+  gather_agency_information
+  put_agency_information_in_list
+  client.name.first
+  client.date_of_birth
+  mailing_method
+  if credit_report_request_done:
+    credit_report_request_interview_done = True
+
+---
+code: |
+  credit_reporting_list = list()
+  make_cra_list_object = True
+
+---
+code: |
+  gathered_reports = cra_airtable_function()
+  gather_reports = true
+
+---
+code: |
+  for name, street_address, city, state, zip in gathered_reports:
+    crax = SimpleCreditReport(name, street_address, city, state, zip)
+    credit_report_list.append(crax)
+  put_agency_information_in_list = True
+
+
+---
+question: |
+  Mailing Method
+subquestion: |
+  How are you mailing your request?
+fields:
+  - "Mailing Method": mailing_method
+    choices:
+      - Regular First Class: First Class
+      - Certified: Certified
+  - "Article Number": article_number
+    show if:
+      variable: mailing_method
+      is: "Certified"
+---
+question: |
+  Contact Information
+fields:
+  - Client First Name: client.name.first
+  - Client Last Name: client.name.last
+  - Street Address: client.address.address
+	- City: client.address.city
+	  default: Boston
+	- State: client.address.state
+	  default: MA
+	- Zip Code: user.address.zip
+  - Phone Number: client.phone_number
+  - Email: client.email
+    required: False
+
+---
+question: |
+  Additional Client Information
+fields:
+  - "What are the last four digits of your client's social security number?": client.ssn_last_four
+  - "What is your client's date of birth?": client.date_of_birth
+    datatype: date
+
+---
+question: |
+  Enclosures
+subquestion: |
+  Are you including any enclosures with your request?
+yesno: report_list[i].enclosures.there_are_any
+
+---
+question: |
+  ${ordinal(j)} Enclosure
+subquestion: |
+  Tell us about the ${ordinal(i)} enclosure
+fields:
+  - Describe Enclosure: report_list[i].enclosures[j]
+  
+---
+question: |
+  Other Enclosures
+subquestion: |
+  Are there any other enclosures besides these:
+    % for enclosure in report_list[i].enclosures:
+    * **${ enclosure }**
+    % endfor  
+yesno: report_list[i].enclosures.there_is_another 
+---
+question: |
+  Your Requests
+subquestion: |
+  Here are your requests
+  
+  ${ credit_report_request_template_variable }
+
+continue button field: credit_report_request_done
+
+---
+attachment:
+  - name: credit_report_request_template
+    variable name: credit_report_request_template_variable
+    filename: credit_report_request_template_file
+    docx template file: credit_report_request_template.docx
